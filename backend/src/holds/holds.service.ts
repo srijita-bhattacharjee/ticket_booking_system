@@ -8,7 +8,7 @@ import {
 import { PrismaService } from '../database/prisma.service';
 import { RedisService } from '../common/redis/redis.service';
 import { SeatsGateway } from '../seats/seats.gateway';
-import { HoldStatus, SeatStatus } from '@prisma/client';
+import { HoldStatus, SeatStatus, Prisma } from '@prisma/client';
 
 export interface CreateHoldDto {
   eventId: string;
@@ -57,10 +57,10 @@ export class HoldsService {
     try {
       // Execute PostgreSQL transaction with Row-Level Locking (Pessimistic concurrency control)
       const hold = await this.prisma.$transaction(async (tx) => {
-        // Raw query or Prisma FOR UPDATE equivalent to lock targeted seats
+        // Raw query using Prisma.join for pessimistic row locking (FOR UPDATE)
         const targetSeats = await tx.$queryRaw<Array<{ id: string; status: SeatStatus; version: number }>>`
           SELECT id, status, version FROM event_seats
-          WHERE id IN (${PrismaService.raw(dto.seatIds.map((id) => `'${id}'`).join(','))})
+          WHERE id IN (${Prisma.join(dto.seatIds)})
           FOR UPDATE
         `;
 
