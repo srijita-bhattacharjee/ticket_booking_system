@@ -1,0 +1,258 @@
+// Prisma Schema for Ticket Booking System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ORGANISER
+  ADMIN
+}
+
+enum EventType {
+  MOVIE
+  CONCERT
+}
+
+enum EventStatus {
+  UPCOMING
+  ON_SALE
+  SOLD_OUT
+  COMPLETED
+  CANCELLED
+}
+
+enum SeatCategory {
+  PREMIUM
+  STANDARD
+}
+
+enum SeatStatus {
+  AVAILABLE
+  HELD
+  BOOKED
+}
+
+enum HoldStatus {
+  ACTIVE
+  EXPIRED
+  RELEASED
+  COMPLETED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum WaitlistStatus {
+  WAITING
+  OFFERED
+  EXPIRED
+  FULFILLED
+  CANCELLED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+enum TicketStatus {
+  VALID
+  CHECKED_IN
+  CANCELLED
+}
+
+model User {
+  id           String          @id @default(uuid())
+  name         String
+  email        String          @unique
+  passwordHash String          @map("password_hash")
+  role         Role            @default(CUSTOMER)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  
+  venues       Venue[]
+  events       Event[]
+  holds        Hold[]
+  bookings     Booking[]
+  waitlists    WaitlistEntry[]
+
+  @@map("users")
+}
+
+model Venue {
+  id          String      @id @default(uuid())
+  name        String
+  location    String
+  createdById String      @map("created_by")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  createdBy   User        @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  seats       VenueSeat[]
+  events      Event[]
+
+  @@map("venues")
+}
+
+model VenueSeat {
+  id         String       @id @default(uuid())
+  venueId    String       @map("venue_id")
+  rowNumber  String       @map("row_number")
+  seatNumber Int          @map("seat_number")
+  category   SeatCategory @default(STANDARD)
+
+  venue      Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  eventSeats EventSeat[]
+
+  @@unique([venueId, rowNumber, seatNumber])
+  @@map("venue_seats")
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  organiserId String      @map("organiser_id")
+  venueId     String      @map("venue_id")
+  title       String
+  description String
+  eventType   EventType   @default(MOVIE) @map("event_type")
+  eventDate   DateTime    @map("event_date")
+  startTime   String      @map("start_time")
+  status      EventStatus @default(ON_SALE)
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  organiser   User        @relation(fields: [organiserId], references: [id], onDelete: Cascade)
+  venue       Venue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  seats       EventSeat[]
+  holds       Hold[]
+  bookings    Booking[]
+  waitlists   WaitlistEntry[]
+
+  @@map("events")
+}
+
+model EventSeat {
+  id          String       @id @default(uuid())
+  eventId     String       @map("event_id")
+  venueSeatId String       @map("venue_seat_id")
+  category    SeatCategory
+  price       Float
+  status      SeatStatus   @default(AVAILABLE)
+  version     Int          @default(0)
+
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  venueSeat   VenueSeat    @relation(fields: [venueSeatId], references: [id], onDelete: Cascade)
+  holdSeats   HoldSeat[]
+  bookingSeats BookingSeat[]
+  offers      WaitlistOffer[]
+
+  @@unique([eventId, venueSeatId])
+  @@map("event_seats")
+}
+
+model Hold {
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  eventId   String     @map("event_id")
+  expiresAt DateTime   @map("expires_at")
+  status    HoldStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  seats     HoldSeat[]
+
+  @@map("holds")
+}
+
+model HoldSeat {
+  holdId      String   @map("hold_id")
+  eventSeatId String   @map("event_seat_id")
+
+  hold        Hold     @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  eventSeat   EventSeat @relation(fields: [eventSeatId], references: [id], onDelete: Cascade)
+
+  @@id([holdId, eventSeatId])
+  @@map("hold_seats")
+}
+
+model Booking {
+  id               String        @id @default(uuid())
+  userId           String        @map("user_id")
+  eventId          String        @map("event_id")
+  bookingReference String        @unique @map("booking_reference")
+  totalAmount      Float         @map("total_amount")
+  status           BookingStatus @default(CONFIRMED)
+  idempotencyKey   String?       @unique @map("idempotency_key")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  cancelledAt      DateTime?     @map("cancelled_at")
+
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event            Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  seats            BookingSeat[]
+  tickets          Ticket[]
+
+  @@map("bookings")
+}
+
+model BookingSeat {
+  bookingId   String   @map("booking_id")
+  eventSeatId String   @map("event_seat_id")
+
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  eventSeat   EventSeat @relation(fields: [eventSeatId], references: [id], onDelete: Cascade)
+
+  @@id([bookingId, eventSeatId])
+  @@map("booking_seats")
+}
+
+model WaitlistEntry {
+  id        String         @id @default(uuid())
+  userId    String         @map("user_id")
+  eventId   String         @map("event_id")
+  category  SeatCategory
+  position  Int
+  status    WaitlistStatus @default(WAITING)
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  offers    WaitlistOffer[]
+
+  @@map("waitlist_entries")
+}
+
+model WaitlistOffer {
+  id              String        @id @default(uuid())
+  waitlistEntryId String        @map("waitlist_entry_id")
+  eventSeatId     String        @map("event_seat_id")
+  offerToken      String        @unique @map("offer_token")
+  expiresAt       DateTime      @map("expires_at")
+  status          OfferStatus   @default(PENDING)
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  waitlistEntry   WaitlistEntry @relation(fields: [waitlistEntryId], references: [id], onDelete: Cascade)
+  eventSeat       EventSeat     @relation(fields: [eventSeatId], references: [id], onDelete: Cascade)
+
+  @@map("waitlist_offers")
+}
+
+model Ticket {
+  id          String       @id @default(uuid())
+  bookingId   String       @map("booking_id")
+  qrToken     String       @unique @map("qr_token")
+  status      TicketStatus @default(VALID)
+  issuedAt    DateTime     @default(now()) @map("issued_at")
+  checkedInAt DateTime?    @map("checked_in_at")
+
+  booking     Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("tickets")
+}
