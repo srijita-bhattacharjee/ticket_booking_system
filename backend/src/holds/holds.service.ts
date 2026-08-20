@@ -57,10 +57,10 @@ export class HoldsService {
     try {
       // Execute PostgreSQL transaction with Row-Level Locking (Pessimistic concurrency control)
       const hold = await this.prisma.$transaction(async (tx) => {
-        // Raw query using Prisma.join for pessimistic row locking (FOR UPDATE)
+        // Raw query using Postgres ANY operator for pessimistic row locking (FOR UPDATE)
         const targetSeats = await tx.$queryRaw<Array<{ id: string; status: SeatStatus; version: number }>>`
           SELECT id, status, version FROM event_seats
-          WHERE id IN (${Prisma.join(dto.seatIds)})
+          WHERE id = ANY(${dto.seatIds})
           FOR UPDATE
         `;
 
