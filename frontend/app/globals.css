@@ -1,11 +1,47 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+:root,
+[data-theme="dark"] {
+  --bg-main: #0D0F12;
+  --bg-nav: #12151A;
+  --bg-card: #181C22;
+  --bg-card-elevated: #20242B;
+  --primary-accent: #FF6847;
+  --accent-hover: #FF8368;
+  --text-main: #F5F5F2;
+  --text-secondary: #A5A8AD;
+  --border-color: #2B3038;
+  --color-success: #45C486;
+  --input-bg: #0D0F12;
+}
+
+[data-theme="light"] {
+  --bg-main: #FFF9F5;
+  --bg-nav: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-elevated: #FFF1EB;
+  --primary-accent: #E95432;
+  --accent-hover: #D94727;
+  --text-main: #17191D;
+  --text-secondary: #686C73;
+  --border-color: #E7E1DD;
+  --color-success: #299B68;
+  --input-bg: #FFFFFF;
+}
 
 body {
-  background-color: #0b0f19;
-  color: #f8fafc;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.font-mono {
+  font-family: 'Space Mono', monospace !important;
 }
 
 /* Custom scrollbar */
@@ -13,16 +49,145 @@ body {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: var(--bg-main);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--border-color);
   border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--primary-accent);
+}
+
+/* Strict Theme Classes */
+.theme-bg-main { background-color: var(--bg-main) !important; }
+.theme-bg-nav { background-color: var(--bg-nav) !important; }
+.theme-bg-card { background-color: var(--bg-card) !important; }
+.theme-bg-elevated { background-color: var(--bg-card-elevated) !important; }
+.theme-bg-input { background-color: var(--input-bg) !important; }
+
+.theme-text-main { color: var(--text-main) !important; }
+.theme-text-secondary { color: var(--text-secondary) !important; }
+.theme-text-accent { color: var(--primary-accent) !important; }
+.theme-text-success { color: var(--color-success) !important; }
+
+.theme-border { border-color: var(--border-color) !important; }
+
+.theme-btn-primary {
+  background-color: var(--primary-accent) !important;
+  color: #FFFFFF !important;
+  transition: background-color 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-btn-primary:hover {
+  background-color: var(--accent-hover) !important;
+  animation: jitter 0.2s ease-in-out infinite alternate;
+}
+
+.theme-btn-secondary {
+  background-color: var(--bg-card-elevated) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: background-color 0.2s ease;
+}
+.theme-btn-secondary:hover {
+  background-color: var(--bg-card) !important;
+}
+
+.theme-badge-accent {
+  background-color: var(--bg-card-elevated) !important;
+  color: var(--primary-accent) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.theme-badge-success {
+  background-color: var(--bg-card-elevated) !important;
+  color: var(--color-success) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* --- HIGH ENERGY CUSTOM KEYFRAME ANIMATIONS --- */
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+.animate-float-slow {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(45px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(45px) rotate(-360deg); }
+}
+.animate-orbit {
+  animation: orbit 8s linear infinite;
+}
+
+@keyframes marqueeLeft {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee-left {
+  display: flex;
+  width: 200%;
+  animation: marqueeLeft 20s linear infinite;
+}
+
+@keyframes marqueeRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+.animate-marquee-right {
+  display: flex;
+  width: 200%;
+  animation: marqueeRight 20s linear infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradientShift 6s ease infinite;
+}
+
+@keyframes glitchSnap {
+  0%, 94%, 100% { transform: translate(0); text-shadow: none; }
+  95% { transform: translate(-2px, 1px); text-shadow: 2px 0 #ff0055, -2px 0 #ffee00; }
+  97% { transform: translate(2px, -1px); text-shadow: -2px 0 #ff0055, 2px 0 #ffee00; }
+}
+.animate-glitch {
+  animation: glitchSnap 3.5s infinite;
+}
+
+@keyframes sheenSweep {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(150%) skewX(-20deg); }
+}
+.group:hover .animate-sheen {
+  animation: sheenSweep 0.75s ease-in-out;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.animate-shimmer {
+  animation: shimmer 2s infinite ease-in-out;
+}
+
+@keyframes jitter {
+  0% { transform: scale(1.02) rotate(-0.5deg); }
+  100% { transform: scale(1.02) rotate(0.5deg); }
 }

@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authService } from '../../../services/api';
 import { useAuth } from '../../../hooks/useAuth';
-import { LogIn, Key, UserCheck } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect');
   const { login } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -24,9 +26,15 @@ export default function LoginPage() {
     try {
       const res = await authService.login({ email, password });
       login(res.data.accessToken, res.data.user);
-      if (res.data.user.role === 'ORGANISER') router.push('/organiser/dashboard');
-      else if (res.data.user.role === 'ADMIN') router.push('/admin/venues');
-      else router.push('/events');
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else if (res.data.user.role === 'ORGANISER') {
+        router.push('/organiser/dashboard');
+      } else if (res.data.user.role === 'ADMIN') {
+        router.push('/admin/venues');
+      } else {
+        router.push('/events');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
@@ -114,5 +122,13 @@ export default function LoginPage() {
         </p>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12 text-slate-500 text-xs">Loading authentication page...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

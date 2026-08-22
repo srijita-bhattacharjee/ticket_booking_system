@@ -41,11 +41,11 @@ export const holdService = {
 };
 
 export const bookingService = {
-  create: (holdId: string, idempotencyKey?: string) =>
+  create: (data: { holdId: string; idempotencyKey?: string; addons?: any[]; couponCode?: string; discountAmount?: number }) =>
     api.post(
       '/api/bookings',
-      { holdId },
-      idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : {}
+      data,
+      data.idempotencyKey ? { headers: { 'Idempotency-Key': data.idempotencyKey } } : {}
     ),
   getUserBookings: () => api.get('/api/bookings'),
   getOne: (id: string) => api.get(`/api/bookings/${id}`),
@@ -77,4 +77,28 @@ export const analyticsService = {
   getDashboard: () => api.get('/api/organiser/dashboard'),
   getEventAnalytics: (id: string) => api.get(`/api/organiser/events/${id}/analytics`),
   getHeatmap: (id: string) => api.get(`/api/organiser/events/${id}/heatmap`),
+};
+
+export const foodService = {
+  // Public
+  getMenuItems: () => api.get('/api/food/menu-items'),
+  getStalls: () => api.get('/api/food/stalls'),
+  getCoupons: () => api.get('/api/food/coupons'),
+  validateCoupon: (code: string, cartTotal: number) =>
+    api.post('/api/food/coupons/validate', { code, cartTotal }),
+
+  // Admin
+  createStall: (data: any) => api.post('/api/food/admin/stalls', data),
+  deleteStall: (id: string) => api.delete(`/api/food/admin/stalls/${id}`),
+  addMenuItem: (data: any) => api.post('/api/food/admin/menu-items', data),
+  deleteMenuItem: (id: string) => api.delete(`/api/food/admin/menu-items/${id}`),
+  getAllPartnerships: () => api.get('/api/food/admin/partnerships'),
+  updatePartnershipStatus: (id: string, status: string, notes?: string) =>
+    api.patch(`/api/food/admin/partnerships/${id}/status`, { status, notes }),
+
+  // Organiser
+  submitPartnershipProof: (data: any) => api.post('/api/food/organiser/partnerships', data),
+  getOrganiserPartnerships: () => api.get('/api/food/organiser/partnerships'),
+  createCoupon: (data: any) => api.post('/api/food/organiser/coupons', data),
+  getOrganiserCoupons: () => api.get('/api/food/organiser/coupons'),
 };

@@ -38,29 +38,27 @@ export default function CountdownTimer({ expiresAt, onExpire }: CountdownTimerPr
 
   if (timeLeft.isExpired) {
     return (
-      <div className="bg-rose-950/80 border border-rose-600/60 rounded-xl p-3 flex items-center gap-2 text-rose-300 text-sm font-semibold">
-        <AlertTriangle className="w-5 h-5 text-rose-400" />
+      <div className="theme-bg-elevated theme-border border rounded-xl p-3.5 flex items-center gap-2 theme-text-accent text-xs font-semibold">
+        <AlertTriangle className="w-5 h-5 theme-text-accent" />
         <span>Seat hold session has expired! Please re-select your seats.</span>
       </div>
     );
   }
 
-  const isLowTime = timeLeft.minutes < 2;
-
   return (
-    <div
-      className={`rounded-xl p-3.5 border flex items-center justify-between transition ${
-        isLowTime
-          ? 'bg-amber-950/80 border-amber-500/80 text-amber-300 animate-pulse'
-          : 'bg-slate-900/80 border-slate-800 text-sky-400'
-      }`}
-    >
-      <div className="flex items-center gap-2 font-medium text-sm">
-        <Timer className={`w-5 h-5 ${isLowTime ? 'text-amber-400' : 'text-sky-400'}`} />
-        <span>Time Remaining on Hold:</span>
+    <div className="theme-bg-card theme-border border-2 rounded-xl p-4 flex items-center justify-between shadow-lg">
+      <div className="flex items-center gap-2 font-medium text-xs theme-text-main">
+        <Timer className="w-5 h-5 theme-text-accent animate-bounce" />
+        <span className="font-bold">Time Remaining on Hold:</span>
       </div>
-      <div className="font-mono text-lg font-bold">
-        {String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+      <div className="flex items-center gap-1 font-mono text-lg font-black theme-text-accent">
+        <span className="theme-bg-elevated px-2.5 py-1 rounded-lg theme-border border shadow-inner">
+          {String(timeLeft.minutes).padStart(2, '0')}
+        </span>
+        <span>:</span>
+        <span className="theme-bg-elevated px-2.5 py-1 rounded-lg theme-border border shadow-inner animate-pulse">
+          {String(timeLeft.seconds).padStart(2, '0')}
+        </span>
       </div>
     </div>
   );

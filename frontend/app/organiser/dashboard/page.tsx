@@ -37,69 +37,69 @@ export default function OrganiserDashboardPage() {
     }
   }, [selectedEventId]);
 
-  if (loading) return <div className="text-center py-20 text-slate-500">Loading organiser metrics...</div>;
+  if (loading) return <div className="text-center py-20 theme-text-secondary text-xs">Loading organiser metrics...</div>;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-white">Organiser Revenue & Analytics</h1>
-          <p className="text-xs text-slate-400">Track ticket sales, seat occupancy, cancellation metrics & heatmaps</p>
+          <h1 className="text-3xl font-extrabold theme-text-main">Organiser Revenue & Analytics</h1>
+          <p className="text-xs theme-text-secondary">Track ticket sales, seat occupancy, cancellation metrics & heatmaps</p>
         </div>
         <Link
           href="/organiser/events/create"
-          className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-purple-600/20"
+          className="theme-btn-primary font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md"
         >
-          <PlusCircle className="w-4 h-4" />
+          <PlusCircle className="w-4 h-4 text-white" />
           Create New Event
         </Link>
       </div>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="theme-bg-card theme-border border p-6 rounded-2xl space-y-2">
+          <div className="flex items-center justify-between theme-text-secondary text-xs font-semibold">
             <span>Total Revenue</span>
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <DollarSign className="w-4 h-4 theme-text-success" />
           </div>
-          <p className="text-3xl font-extrabold text-white">${summary?.totalRevenue?.toFixed(2) || '0.00'}</p>
-          <span className="text-[11px] text-emerald-400 font-medium">+14% vs previous show</span>
+          <p className="text-3xl font-extrabold theme-text-success">${summary?.totalRevenue?.toFixed(2) || '0.00'}</p>
+          <span className="text-[11px] theme-text-success font-medium">+14% vs previous show</span>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="theme-bg-card theme-border border p-6 rounded-2xl space-y-2">
+          <div className="flex items-center justify-between theme-text-secondary text-xs font-semibold">
             <span>Total Tickets Sold</span>
-            <Ticket className="w-4 h-4 text-sky-400" />
+            <Ticket className="w-4 h-4 theme-text-accent" />
           </div>
-          <p className="text-3xl font-extrabold text-white">{summary?.totalTicketsSold || 0}</p>
-          <span className="text-[11px] text-sky-400 font-medium">Confirmed bookings</span>
+          <p className="text-3xl font-extrabold theme-text-main">{summary?.totalTicketsSold || 0}</p>
+          <span className="text-[11px] theme-text-accent font-medium">Confirmed bookings</span>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="theme-bg-card theme-border border p-6 rounded-2xl space-y-2">
+          <div className="flex items-center justify-between theme-text-secondary text-xs font-semibold">
             <span>Average Occupancy</span>
-            <TrendingUp className="w-4 h-4 text-purple-400" />
+            <TrendingUp className="w-4 h-4 theme-text-accent" />
           </div>
-          <p className="text-3xl font-extrabold text-white">{summary?.averageOccupancy || 0}%</p>
-          <span className="text-[11px] text-purple-400 font-medium">Venue fill capacity</span>
+          <p className="text-3xl font-extrabold theme-text-main">{summary?.averageOccupancy || 0}%</p>
+          <span className="text-[11px] theme-text-accent font-medium">Venue fill capacity</span>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="theme-bg-card theme-border border p-6 rounded-2xl space-y-2">
+          <div className="flex items-center justify-between theme-text-secondary text-xs font-semibold">
             <span>Active Listings</span>
-            <Users className="w-4 h-4 text-amber-400" />
+            <Users className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-3xl font-extrabold text-white">{summary?.totalEvents || 0}</p>
-          <span className="text-[11px] text-amber-400 font-medium">On-sale events</span>
+          <p className="text-3xl font-extrabold theme-text-main">{summary?.totalEvents || 0}</p>
+          <span className="text-[11px] text-amber-500 font-medium">On-sale events</span>
         </div>
       </div>
 
       {/* Events Summary Table */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <h3 className="text-lg font-bold text-white">Event Performance Breakdown</h3>
+      <div className="theme-bg-card theme-border border rounded-2xl p-6 space-y-4">
+        <h3 className="text-lg font-bold theme-text-main">Event Performance Breakdown</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="border-b border-slate-800 uppercase text-[10px] text-slate-400 bg-slate-950/60">
+          <table className="w-full text-left text-xs theme-text-main">
+            <thead className="border-b theme-border uppercase text-[10px] theme-text-secondary theme-bg-elevated">
               <tr>
                 <th className="p-3">Event Title</th>
                 <th className="p-3">Venue</th>
@@ -110,16 +110,16 @@ export default function OrganiserDashboardPage() {
                 <th className="p-3 text-right">Heatmap</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y theme-border">
               {summary?.eventSummaries?.map((ev: any) => (
-                <tr key={ev.eventId} className="hover:bg-slate-800/40 transition">
-                  <td className="p-3 font-bold text-white">{ev.title}</td>
-                  <td className="p-3 text-slate-400">{ev.venueName}</td>
+                <tr key={ev.eventId} className="hover:theme-bg-elevated transition">
+                  <td className="p-3 font-bold theme-text-main">{ev.title}</td>
+                  <td className="p-3 theme-text-secondary">{ev.venueName}</td>
                   <td className="p-3 font-semibold">{ev.ticketsSold} / {ev.totalSeats}</td>
-                  <td className="p-3 font-bold text-sky-400">{ev.occupancyRate}%</td>
-                  <td className="p-3 font-bold text-emerald-400">${ev.totalRevenue?.toFixed(2)}</td>
+                  <td className="p-3 font-bold theme-text-accent">{ev.occupancyRate}%</td>
+                  <td className="p-3 font-bold theme-text-success">${ev.totalRevenue?.toFixed(2)}</td>
                   <td className="p-3">
-                    <span className="bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800 font-semibold">
+                    <span className="theme-badge-accent px-2 py-0.5 rounded font-semibold text-[11px]">
                       {ev.waitlistDemand} Waiting
                     </span>
                   </td>
@@ -128,8 +128,8 @@ export default function OrganiserDashboardPage() {
                       onClick={() => setSelectedEventId(ev.eventId)}
                       className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1 ml-auto ${
                         selectedEventId === ev.eventId
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          ? 'theme-btn-primary'
+                          : 'theme-btn-secondary'
                       }`}
                     >
                       <Flame className="w-3.5 h-3.5" />
@@ -147,7 +147,7 @@ export default function OrganiserDashboardPage() {
       {selectedEventId && (
         <div className="space-y-4">
           {loadingHeatmap ? (
-            <div className="text-center py-12 text-slate-500">Loading seat occupancy heatmap...</div>
+            <div className="text-center py-12 theme-text-secondary text-xs">Loading seat occupancy heatmap...</div>
           ) : heatmapData ? (
             <SeatHeatmap rows={heatmapData.rows || []} />
           ) : null}

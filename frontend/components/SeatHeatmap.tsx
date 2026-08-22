@@ -21,29 +21,29 @@ interface SeatHeatmapProps {
 
 export default function SeatHeatmap({ rows }: SeatHeatmapProps) {
   return (
-    <div className="w-full bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-md">
+    <div className="w-full theme-bg-card theme-border border rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-white">Visual Seat Occupancy Heatmap</h3>
-          <p className="text-xs text-slate-400">Real-time seat popularity and demand intensity grid</p>
+          <h3 className="text-lg font-bold theme-text-main">Visual Seat Occupancy Heatmap</h3>
+          <p className="text-xs theme-text-secondary">Real-time seat popularity and demand intensity grid</p>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-medium">
+        <div className="flex items-center gap-4 text-xs font-semibold">
           <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded bg-slate-800 border border-slate-700" />
-            <span className="text-slate-400">Empty (0)</span>
+            <div className="w-3.5 h-3.5 rounded theme-bg-main theme-border border" />
+            <span className="theme-text-secondary">Available (0)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded bg-amber-500/40 border border-amber-400" />
-            <span className="text-amber-300">Held (1)</span>
+            <div className="w-3.5 h-3.5 rounded theme-bg-elevated theme-border border text-amber-500 font-bold flex items-center justify-center text-[9px]">1</div>
+            <span className="theme-text-secondary">Held (1)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded bg-sky-500/50 border border-sky-400" />
-            <span className="text-sky-300">Standard Booked (2)</span>
+            <div className="w-3.5 h-3.5 rounded theme-bg-elevated theme-border border theme-text-success font-bold flex items-center justify-center text-[9px]">2</div>
+            <span className="theme-text-success">Standard Booked (2)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded bg-purple-500 border border-purple-300 shadow-md shadow-purple-500/50" />
-            <span className="text-purple-300">Premium High Demand (3)</span>
+            <div className="w-3.5 h-3.5 rounded theme-btn-primary shadow-sm flex items-center justify-center text-[9px] font-extrabold">3</div>
+            <span className="theme-text-accent">High Demand (3)</span>
           </div>
         </div>
       </div>
@@ -51,19 +51,19 @@ export default function SeatHeatmap({ rows }: SeatHeatmapProps) {
       <div className="space-y-3 max-w-4xl mx-auto overflow-x-auto pb-4">
         {rows.map((r) => (
           <div key={r.rowLabel} className="flex items-center justify-center gap-2">
-            <span className="w-6 text-center text-xs font-bold text-slate-400 uppercase">
+            <span className="w-6 text-center text-xs font-bold theme-text-secondary uppercase">
               {r.rowLabel}
             </span>
 
             <div className="flex items-center gap-2">
               {r.seats.map((seat) => {
-                let heatColor = 'bg-slate-800/80 border-slate-700 text-slate-500';
+                let heatColor = 'theme-bg-main theme-border border theme-text-secondary';
                 if (seat.heatScore === 1) {
-                  heatColor = 'bg-amber-500/30 border-amber-400 text-amber-200 animate-pulse';
+                  heatColor = 'theme-bg-elevated theme-border border text-amber-500 font-semibold';
                 } else if (seat.heatScore === 2) {
-                  heatColor = 'bg-sky-500/40 border-sky-400 text-sky-100 font-bold';
+                  heatColor = 'theme-bg-elevated theme-border border theme-text-success font-bold';
                 } else if (seat.heatScore === 3) {
-                  heatColor = 'bg-purple-500 border-purple-300 text-white font-extrabold shadow-lg shadow-purple-500/40 scale-105';
+                  heatColor = 'theme-btn-primary font-extrabold shadow-sm scale-105';
                 }
 
                 return (
@@ -78,7 +78,7 @@ export default function SeatHeatmap({ rows }: SeatHeatmapProps) {
               })}
             </div>
 
-            <span className="w-6 text-center text-xs font-bold text-slate-400 uppercase">
+            <span className="w-6 text-center text-xs font-bold theme-text-secondary uppercase">
               {r.rowLabel}
             </span>
           </div>

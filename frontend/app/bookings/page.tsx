@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { bookingService } from '../../services/api';
-import { Ticket, QrCode, XCircle, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Ticket, QrCode, XCircle, CheckCircle2 } from 'lucide-react';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -41,28 +41,28 @@ export default function BookingsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 py-4">
       <div>
-        <h1 className="text-3xl font-extrabold text-white">My Booking History</h1>
-        <p className="text-xs text-slate-400">View confirmed tickets, QR check-in tokens, or cancel bookings</p>
+        <h1 className="text-3xl font-extrabold theme-text-main">My Booking History</h1>
+        <p className="text-xs theme-text-secondary">View confirmed tickets, QR check-in tokens, or cancel bookings</p>
       </div>
 
       {message && (
-        <div className="bg-emerald-950/80 border border-emerald-600 rounded-xl p-4 flex items-center gap-2 text-emerald-300 text-sm font-semibold">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+        <div className="theme-bg-elevated theme-border border rounded-xl p-4 flex items-center gap-2 theme-text-success text-sm font-semibold">
+          <CheckCircle2 className="w-5 h-5 theme-text-success" />
           <span>{message}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-16 text-slate-500">Loading your bookings...</div>
+        <div className="text-center py-16 theme-text-secondary text-xs">Loading your bookings...</div>
       ) : bookings.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-slate-900/40 border border-slate-800 rounded-2xl space-y-3">
-          <Ticket className="w-10 h-10 text-slate-600 mx-auto" />
-          <p className="text-sm font-medium">You have no active or past bookings.</p>
+        <div className="text-center py-16 theme-text-secondary theme-bg-card theme-border border rounded-2xl space-y-3">
+          <Ticket className="w-10 h-10 theme-text-secondary mx-auto" />
+          <p className="text-sm font-medium theme-text-main">You have no active or past bookings.</p>
           <Link
             href="/events"
-            className="inline-block bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition"
+            className="inline-block theme-btn-primary font-bold px-4 py-2 rounded-xl text-xs transition"
           >
             Explore Events & Book Seats
           </Link>
@@ -76,26 +76,26 @@ export default function BookingsPage() {
             return (
               <div
                 key={b.id}
-                className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
+                className="theme-bg-card theme-border border rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-md"
               >
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono uppercase bg-slate-800 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold">
+                    <span className="text-[11px] font-mono uppercase theme-badge-accent px-2 py-0.5 rounded font-bold">
                       {b.bookingReference}
                     </span>
                     <span
                       className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                         isCancelled
-                          ? 'bg-rose-950 text-rose-400 border border-rose-800'
-                          : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                          ? 'theme-bg-elevated theme-text-accent theme-border border'
+                          : 'theme-badge-success'
                       }`}
                     >
                       {b.status}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-white">{b.event?.title}</h3>
-                  <p className="text-xs text-slate-400">
+                  <h3 className="text-xl font-bold theme-text-main">{b.event?.title}</h3>
+                  <p className="text-xs theme-text-secondary">
                     Venue: {b.event?.venue?.name} • Date: {new Date(b.event?.eventDate).toLocaleDateString()} at {b.event?.startTime}
                   </p>
 
@@ -103,7 +103,7 @@ export default function BookingsPage() {
                     {b.seats?.map((s: any) => (
                       <span
                         key={s.eventSeatId}
-                        className="text-[11px] bg-slate-950 border border-slate-800 text-slate-300 px-2.5 py-1 rounded-md font-medium"
+                        className="text-[11px] theme-bg-elevated theme-border border theme-text-main px-2.5 py-1 rounded-md font-medium"
                       >
                         Row {s.eventSeat?.venueSeat?.rowNumber}-{s.eventSeat?.venueSeat?.seatNumber} ({s.eventSeat?.category})
                       </span>
@@ -111,13 +111,13 @@ export default function BookingsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 border-t md:border-t-0 md:border-l border-slate-800 pt-4 md:pt-0 md:pl-6">
+                <div className="flex flex-wrap items-center gap-3 border-t md:border-t-0 md:border-l theme-border pt-4 md:pt-0 md:pl-6">
                   {ticket && !isCancelled && (
                     <Link
                       href={`/tickets/${ticket.id}`}
-                      className="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-sky-500/20"
+                      className="theme-btn-primary font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md"
                     >
-                      <QrCode className="w-4 h-4" />
+                      <QrCode className="w-4 h-4 text-white" />
                       View QR Ticket
                     </Link>
                   )}
@@ -126,9 +126,9 @@ export default function BookingsPage() {
                     <button
                       onClick={() => handleCancelBooking(b.id)}
                       disabled={cancellingId === b.id}
-                      className="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 px-4 py-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5"
+                      className="theme-btn-secondary font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5"
                     >
-                      <XCircle className="w-4 h-4" />
+                      <XCircle className="w-4 h-4 theme-text-accent" />
                       {cancellingId === b.id ? 'Cancelling...' : 'Cancel Booking'}
                     </button>
                   )}

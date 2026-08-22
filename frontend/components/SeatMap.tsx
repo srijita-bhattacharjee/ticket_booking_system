@@ -59,36 +59,32 @@ export default function SeatMap({
   const rows = Array.from(rowsMap.entries());
 
   return (
-    <div className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+    <div className="w-full theme-bg-card theme-border border rounded-2xl p-6">
       {/* Screen / Stage Indicator */}
       <div className="mb-10 text-center">
-        <div className="w-3/4 mx-auto h-2.5 bg-gradient-to-r from-sky-500 via-indigo-400 to-purple-500 rounded-full shadow-lg shadow-sky-500/30" />
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mt-2">
+        <div className="w-3/4 mx-auto h-2.5 theme-btn-primary rounded-full shadow-md" />
+        <p className="text-[11px] font-bold uppercase tracking-widest theme-text-secondary mt-2">
           SCREEN / STAGE THIS WAY
         </p>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-xs font-medium">
+      <div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-xs font-semibold">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-emerald-500/20 border border-emerald-500" />
-          <span className="text-slate-300">Available Standard</span>
+          <div className="w-4 h-4 rounded theme-bg-elevated theme-border border" />
+          <span className="theme-text-secondary">Standard</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-amber-500/20 border border-amber-400" />
-          <span className="text-slate-300">Available Premium</span>
+          <div className="w-4 h-4 rounded theme-bg-card theme-border border text-theme-accent border-theme-accent flex items-center justify-center text-[9px] font-bold">P</div>
+          <span className="theme-text-main">Premium</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-sky-500 border border-sky-400 shadow-md shadow-sky-500/40" />
-          <span className="text-slate-300">Selected</span>
+          <div className="w-4 h-4 rounded theme-btn-primary shadow-sm" />
+          <span className="theme-text-main">Selected</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-amber-950/80 border border-amber-600/50 animate-pulse" />
-          <span className="text-slate-400">Held (10m TTL)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-slate-800 border border-slate-700 opacity-60" />
-          <span className="text-slate-500">Booked</span>
+          <div className="w-4 h-4 rounded theme-bg-main theme-border border opacity-50" />
+          <span className="theme-text-secondary">Held / Booked</span>
         </div>
       </div>
 
@@ -96,7 +92,7 @@ export default function SeatMap({
       <div className="space-y-3 max-w-3xl mx-auto overflow-x-auto pb-4">
         {rows.map(([rowLabel, rowSeats]) => (
           <div key={rowLabel} className="flex items-center justify-center gap-2">
-            <span className="w-6 text-center text-xs font-bold text-slate-400 uppercase">
+            <span className="w-6 text-center text-xs font-bold theme-text-secondary uppercase">
               {rowLabel}
             </span>
 
@@ -107,19 +103,17 @@ export default function SeatMap({
                 const isBooked = seat.status === 'BOOKED';
                 const isPremium = seat.category === 'PREMIUM';
 
-                let seatStyles = 'bg-emerald-500/10 border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/30';
+                let seatStyles = 'theme-bg-elevated theme-border border theme-text-main hover:opacity-80';
                 if (isPremium) {
-                  seatStyles = 'bg-amber-500/10 border-amber-500/60 text-amber-300 hover:bg-amber-500/30';
+                  seatStyles = 'theme-bg-card theme-border border theme-text-accent font-bold hover:opacity-80';
                 }
 
                 if (isSelected) {
                   seatStyles =
-                    'bg-sky-500 text-slate-950 font-extrabold border-sky-300 shadow-lg shadow-sky-500/40 scale-105';
-                } else if (isHeld) {
+                    'theme-btn-primary font-extrabold shadow-md scale-105';
+                } else if (isHeld || isBooked) {
                   seatStyles =
-                    'bg-amber-950/60 border-amber-600/40 text-amber-500/50 cursor-not-allowed animate-pulse';
-                } else if (isBooked) {
-                  seatStyles = 'bg-slate-800/80 border-slate-700/50 text-slate-600 cursor-not-allowed';
+                    'theme-bg-main theme-border border theme-text-secondary opacity-40 cursor-not-allowed';
                 }
 
                 return (
@@ -136,7 +130,7 @@ export default function SeatMap({
               })}
             </div>
 
-            <span className="w-6 text-center text-xs font-bold text-slate-400 uppercase">
+            <span className="w-6 text-center text-xs font-bold theme-text-secondary uppercase">
               {rowLabel}
             </span>
           </div>
