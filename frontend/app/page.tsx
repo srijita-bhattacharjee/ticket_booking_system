@@ -88,7 +88,7 @@ export default function HomePage() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/organiser/coupons"
+                href="/offers"
                 className="theme-btn-secondary font-bold px-6 py-3.5 rounded-xl transition text-sm flex items-center gap-2"
               >
                 <Gift className="w-4 h-4 theme-text-accent" />

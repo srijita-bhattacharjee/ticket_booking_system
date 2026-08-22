@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { holdService, bookingService, foodService } from '../../../services/api';
 import { useAuth } from '../../../hooks/useAuth';
 import CountdownTimer from '../../../components/CountdownTimer';
-import { CreditCard, ShieldCheck, Ticket, AlertTriangle, Utensils, Tag, Plus, Minus, CheckCircle2 } from 'lucide-react';
+import RazorpayPaymentModal from '../../../components/RazorpayPaymentModal';
+import { ShieldCheck, Ticket, AlertTriangle, Utensils, Tag, Plus, Minus, CheckCircle2 } from 'lucide-react';
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -48,17 +49,18 @@ export default function CheckoutPage() {
           setMenuItems(menuRes.data);
         })
         .catch((err) => {
-          setError(err.response?.data?.message || 'Hold session has expired or is invalid');
+          console.error(err);
+          setError(err.response?.data?.message || 'Failed to load hold session details');
         })
         .finally(() => setLoading(false));
     }
   }, [holdId]);
 
-  const updateAddonQuantity = (item: any, delta: number) => {
+  const updateAddonQty = (item: any, delta: number) => {
     setSelectedAddons((prev) => {
-      const currentQty = prev[item.id]?.quantity || 0;
-      const newQty = Math.max(0, currentQty + delta);
-      if (newQty === 0) {
+      const current = prev[item.id]?.quantity || 0;
+      const nextQty = Math.max(0, current + delta);
+      if (nextQty === 0) {
         const copy = { ...prev };
         delete copy[item.id];
         return copy;
@@ -66,7 +68,7 @@ export default function CheckoutPage() {
       return {
         ...prev,
         [item.id]: {
-          quantity: newQty,
+          quantity: nextQty,
           price: item.price,
           name: item.name,
         },
@@ -74,57 +76,84 @@ export default function CheckoutPage() {
     });
   };
 
-  const seatsList = hold?.seats || [];
-  const seatsSubtotal = seatsList.reduce((sum: number, s: any) => sum + (s.eventSeat?.price || 0), 0);
-  const addonsSubtotal = Object.values(selectedAddons).reduce((sum, a) => sum + a.price * a.quantity, 0);
-  const cartSubtotal = seatsSubtotal + addonsSubtotal;
-  const totalPayable = Math.max(0, cartSubtotal - couponDiscount);
-
   const handleApplyCoupon = async () => {
     if (!couponCodeInput.trim()) return;
     setValidatingCoupon(true);
     setCouponMessage(null);
     try {
-      const res = await foodService.validateCoupon(couponCodeInput.trim(), cartSubtotal);
-      setAppliedCoupon(res.data.coupon);
-      setCouponDiscount(res.data.discountAmount);
-      setCouponMessage({ type: 'success', text: res.data.message });
+      const seatsSum = (hold?.seats || []).reduce((acc: number, s: any) => acc + s.eventSeat.price, 0);
+      const res = await foodService.validateCoupon(couponCodeInput.trim(), seatsSum);
+      const couponObj = res.data.coupon || res.data;
+      const discount = res.data.discountAmount !== undefined ? res.data.discountAmount : ((seatsSum * (couponObj.discountPercent || 0)) / 100);
+      const percentStr = couponObj.discountPercent ? `${couponObj.discountPercent}%` : `$${discount}`;
+
+      setAppliedCoupon(couponObj);
+      setCouponDiscount(discount);
+
+      setCouponMessage({
+        type: 'success',
+        text: `Coupon "${couponObj.code}" applied! Saved $${discount.toFixed(2)} (${percentStr} off)`,
+      });
     } catch (err: any) {
       setAppliedCoupon(null);
       setCouponDiscount(0);
-      setCouponMessage({ type: 'error', text: err.response?.data?.message || 'Invalid coupon code' });
+      setCouponMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Invalid or expired coupon code',
+      });
     } finally {
       setValidatingCoupon(false);
     }
   };
 
-  const handleCompleteBooking = async () => {
+  const seatsList = hold?.seats || [];
+  const seatsSubtotal = seatsList.reduce((acc: number, s: any) => acc + s.eventSeat.price, 0);
+  const addonsSubtotal = Object.values(selectedAddons).reduce((acc: any, a: any) => acc + a.price * a.quantity, 0);
+  const totalPayable = Math.max(0, seatsSubtotal + addonsSubtotal - couponDiscount);
+
+  const handleRazorpayPaymentSuccess = async (rzpPayload: any) => {
     setBookingInProcess(true);
     setError('');
+
     try {
-      const addonsPayload = Object.entries(selectedAddons).map(([menuItemId, info]) => ({
+      const formattedAddons = Object.entries(selectedAddons).map(([menuItemId, item]) => ({
         menuItemId,
-        quantity: info.quantity,
-        price: info.price,
+        quantity: item.quantity,
+        price: item.price,
       }));
 
-      const res = await bookingService.create({
+      const res = await bookingService.verifyRazorpayPayment({
         holdId,
+        razorpay_order_id: rzpPayload.razorpay_order_id,
+        razorpay_payment_id: rzpPayload.razorpay_payment_id,
+        razorpay_signature: rzpPayload.razorpay_signature,
         idempotencyKey,
-        addons: addonsPayload,
+        addons: formattedAddons,
         couponCode: appliedCoupon?.code || undefined,
-        discountAmount: couponDiscount > 0 ? couponDiscount : undefined,
+        discountAmount: couponDiscount,
       });
 
-      router.push(`/tickets/${res.data.ticket.id}`);
+      const ticketId = res.data.ticket?.id || res.data.tickets?.[0]?.id;
+
+      if (ticketId) {
+        router.push(`/tickets/${ticketId}`);
+      } else {
+        router.push(`/bookings`);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Booking creation failed. Seats may have expired.');
-    } finally {
+      console.error(err);
+      setError(err.response?.data?.message || 'Razorpay payment verification failed');
       setBookingInProcess(false);
     }
   };
 
-  if (loading || authLoading) return <div className="text-center py-20 theme-text-secondary text-xs">Verifying hold session & menu combos...</div>;
+  if (loading || authLoading) {
+    return (
+      <div className="text-center py-20 theme-text-secondary font-mono text-xs">
+        Initializing secure hold session...
+      </div>
+    );
+  }
 
   if (error && !hold) {
     return (
@@ -219,42 +248,33 @@ export default function CheckoutPage() {
                 return (
                   <div
                     key={item.id}
-                    className={`theme-bg-elevated theme-border border rounded-2xl p-4 space-y-3 transition flex flex-col justify-between ${
-                      qty > 0 ? 'border-theme-accent' : ''
-                    }`}
+                    className="theme-bg-elevated theme-border border rounded-2xl p-4 space-y-3 flex flex-col justify-between"
                   >
-                    <div className="flex gap-3">
-                      {item.imageUrl && (
-                        <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
-                      )}
-                      <div className="space-y-1">
-                        <span className="text-[9px] uppercase font-extrabold theme-text-accent px-1.5 py-0.5 rounded theme-bg-card theme-border border">
-                          {item.category}
-                        </span>
-                        <h4 className="text-xs font-bold theme-text-main line-clamp-1">{item.name}</h4>
-                        <p className="text-[11px] theme-text-secondary line-clamp-2">{item.description}</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-xs theme-text-main line-clamp-1">{item.name}</h4>
+                        <span className="font-extrabold text-xs theme-text-accent">${item.price}</span>
                       </div>
+                      <p className="text-[10px] theme-text-secondary line-clamp-2">{item.description || 'Fresh gourmet cinema snack'}</p>
+                      <span className="text-[10px] theme-text-secondary font-mono block">Stall: {item.stall?.name}</span>
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t theme-border">
-                      <span className="text-xs font-extrabold theme-text-main">${item.price}</span>
-
-                      <div className="flex items-center gap-2 theme-bg-card theme-border border rounded-xl px-2 py-1">
+                      <span className="text-[11px] font-semibold theme-text-secondary">Quantity</span>
+                      <div className="flex items-center gap-2">
                         <button
-                          type="button"
-                          onClick={() => updateAddonQuantity(item, -1)}
+                          onClick={() => updateAddonQty(item, -1)}
                           disabled={qty === 0}
-                          className="theme-text-secondary hover:theme-text-main disabled:opacity-30"
+                          className="w-7 h-7 rounded-lg theme-bg-card theme-border border flex items-center justify-center text-xs font-bold theme-text-main hover:opacity-80 disabled:opacity-30 transition"
                         >
-                          <Minus className="w-3.5 h-3.5" />
+                          <Minus className="w-3 h-3" />
                         </button>
-                        <span className="text-xs font-bold theme-text-main px-1.5">{qty}</span>
+                        <span className="w-5 text-center font-bold text-xs theme-text-main">{qty}</span>
                         <button
-                          type="button"
-                          onClick={() => updateAddonQuantity(item, 1)}
-                          className="theme-text-secondary hover:theme-text-accent"
+                          onClick={() => updateAddonQty(item, 1)}
+                          className="w-7 h-7 rounded-lg theme-btn-primary flex items-center justify-center text-xs font-bold text-white shadow-sm transition"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -265,34 +285,32 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* Sidebar Summary & Payment Action */}
+        {/* Order Summary & Razorpay Payment Gateway Component */}
         <div className="space-y-6">
-          <div className="theme-bg-card theme-border border rounded-3xl p-6 space-y-6 sticky top-24">
-            <h3 className="text-base font-bold theme-text-main border-b theme-border pb-3">
-              Order Summary
-            </h3>
+          <div className="theme-bg-card theme-border border rounded-3xl p-5 sm:p-7 space-y-6 overflow-hidden">
+            <h3 className="text-lg font-bold theme-text-main border-b theme-border pb-3">Order Summary</h3>
 
-            {/* Food Coupons Code Input */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold theme-text-secondary flex items-center gap-1.5">
-                <Tag className="w-4 h-4 theme-text-accent" /> Food Partner Coupon Code
+            {/* Food Partner Coupon Section */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold theme-text-main flex items-center gap-1.5">
+                <Tag className="w-4 h-4 theme-text-accent" />
+                Food Partner Promo Coupon
               </label>
 
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2 w-full overflow-hidden">
                 <input
                   type="text"
-                  placeholder="e.g. POPCORN15"
+                  placeholder="e.g. POPCORN15 or FEAST5"
                   value={couponCodeInput}
                   onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
-                  className="w-full theme-bg-input theme-border border rounded-xl px-3 py-2 text-xs theme-text-accent font-mono font-bold focus:outline-none"
+                  className="min-w-0 flex-1 px-3 py-2 text-xs rounded-xl theme-bg-elevated theme-border border theme-text-main focus:outline-none focus:border-theme-accent font-mono uppercase"
                 />
                 <button
-                  type="button"
                   onClick={handleApplyCoupon}
-                  disabled={validatingCoupon}
-                  className="theme-btn-primary font-bold px-4 py-2 rounded-xl text-xs transition shrink-0"
+                  disabled={validatingCoupon || !couponCodeInput.trim()}
+                  className="theme-btn-primary font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm disabled:opacity-50 shrink-0"
                 >
-                  Apply
+                  {validatingCoupon ? 'Validating...' : 'Apply'}
                 </button>
               </div>
 
@@ -351,17 +369,15 @@ export default function CheckoutPage() {
               <ShieldCheck className="w-4 h-4 theme-text-success shrink-0" />
               <span>Idempotency Protected: <code className="theme-text-accent font-mono">{idempotencyKey}</code></span>
             </div>
-
-            {/* Payment Button */}
-            <button
-              onClick={handleCompleteBooking}
-              disabled={bookingInProcess}
-              className="w-full theme-btn-primary font-extrabold py-3.5 rounded-xl transition shadow-md text-sm flex items-center justify-center gap-2"
-            >
-              <CreditCard className="w-4 h-4 text-white" />
-              {bookingInProcess ? 'Processing Payment & Generating Ticket...' : `Pay $${totalPayable.toFixed(2)} & Get Tickets`}
-            </button>
           </div>
+
+          {/* Razorpay Interactive Payment Gateway Component */}
+          <RazorpayPaymentModal
+            holdId={holdId}
+            totalAmount={totalPayable}
+            onPaymentSuccess={handleRazorpayPaymentSuccess}
+            isProcessing={bookingInProcess}
+          />
         </div>
       </div>
     </div>

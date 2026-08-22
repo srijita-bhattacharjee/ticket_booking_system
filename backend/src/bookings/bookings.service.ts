@@ -3,6 +3,8 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  UnauthorizedException,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
@@ -11,6 +13,7 @@ import { SeatsGateway } from '../seats/seats.gateway';
 import { TicketsService } from '../tickets/tickets.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { HoldStatus, SeatStatus, BookingStatus } from '@prisma/client';
+import * as crypto from 'crypto';
 
 export interface CreateBookingAddonDto {
   menuItemId: string;
@@ -38,6 +41,95 @@ export class BookingsService {
     private notificationsService: NotificationsService,
   ) {}
 
+  /**
+   * STEP 1: Create Razorpay Order
+   * Endpoint: POST /api/bookings/create-order
+   * Calculates amount in paise (minimum 100 paise = ₹1)
+   */
+  async createRazorpayOrder(userId: string, holdId: string, amount: number) {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keyId || !keySecret) {
+      throw new UnauthorizedException('Razorpay credentials missing in server environment');
+    }
+
+    const amountInPaise = Math.max(100, Math.round(amount * 100));
+
+    try {
+      const Razorpay = require('razorpay');
+      const instance = new Razorpay({ key_id: keyId, key_secret: keySecret });
+      
+      const order = await instance.orders.create({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: 'rcpt_' + (holdId ? holdId.substring(0, 10) : Math.random().toString(36).substring(2, 10)),
+        notes: { holdId, userId },
+      });
+
+      return {
+        order_id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        key_id: keyId,
+      };
+    } catch (err: any) {
+      this.logger.error(`Razorpay Order Creation Failed: ${err.message}`, err.stack);
+      throw new InternalServerErrorException(err.message || 'Failed to create Razorpay Order');
+    }
+  }
+
+  /**
+   * STEP 3: Verify Razorpay Payment Signature
+   * Endpoint: POST /api/bookings/verify-payment
+   * Algorithm: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
+   */
+  async verifyRazorpayPayment(
+    userId: string,
+    dto: {
+      holdId: string;
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+      idempotencyKey?: string;
+      addons?: CreateBookingAddonDto[];
+      couponCode?: string;
+      discountAmount?: number;
+    },
+  ) {
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) {
+      throw new UnauthorizedException('Razorpay Secret Key missing on server');
+    }
+
+    if (!dto.razorpay_order_id || !dto.razorpay_payment_id || !dto.razorpay_signature) {
+      throw new BadRequestException('Missing required Razorpay payment verification fields');
+    }
+
+    // Generate expected HMAC-SHA256 signature
+    const generatedSignature = crypto
+      .createHmac('sha256', keySecret)
+      .update(`${dto.razorpay_order_id}|${dto.razorpay_payment_id}`)
+      .digest('hex');
+
+    // Strict signature comparison
+    if (generatedSignature !== dto.razorpay_signature) {
+      this.logger.warn(`Razorpay Signature Mismatch! Generated: ${generatedSignature}, Received: ${dto.razorpay_signature}`);
+      throw new BadRequestException('Payment verification failed: Invalid Razorpay cryptographic signature');
+    }
+
+    this.logger.log(`Razorpay Payment Signature Verified Successfully for Payment ${dto.razorpay_payment_id}`);
+
+    // Signature verified! Atomically confirm booking inside database
+    return this.createBooking(userId, {
+      holdId: dto.holdId,
+      idempotencyKey: dto.idempotencyKey || `RZP-${dto.razorpay_payment_id}`,
+      addons: dto.addons,
+      couponCode: dto.couponCode,
+      discountAmount: dto.discountAmount,
+    });
+  }
+
   async createBooking(userId: string, dto: CreateBookingDto) {
     // 1. Idempotency Check
     if (dto.idempotencyKey) {
@@ -63,6 +155,27 @@ export class BookingsService {
 
     if (!hold) throw new NotFoundException('Hold session not found');
     if (hold.userId !== userId) throw new BadRequestException('Hold session does not belong to you');
+
+    if (hold.status === HoldStatus.COMPLETED) {
+      const existingBooking = await this.prisma.booking.findFirst({
+        where: { userId, eventId: hold.eventId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          event: { include: { venue: true } },
+          seats: { include: { eventSeat: { include: { venueSeat: true } } } },
+          tickets: true,
+        },
+      });
+      if (existingBooking) {
+        const ticketResult = await this.ticketsService.generateTicketForBooking(existingBooking.id);
+        return {
+          booking: existingBooking,
+          ticket: ticketResult.ticket,
+          qrDataUrl: ticketResult.qrDataUrl,
+        };
+      }
+    }
+
     if (hold.status !== HoldStatus.ACTIVE) {
       throw new ConflictException(`Hold session is no longer active (Status: ${hold.status})`);
     }

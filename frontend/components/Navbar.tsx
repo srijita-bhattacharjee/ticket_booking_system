@@ -32,6 +32,10 @@ export default function Navbar() {
             <Compass className="w-4 h-4" />
             Events
           </Link>
+          <Link href="/offers" className="theme-text-secondary hover:theme-text-main transition text-xs sm:text-sm flex items-center gap-1 font-medium">
+            <Tag className="w-4 h-4 theme-text-accent" />
+            Offers
+          </Link>
 
           {/* Theme Switcher Toggle Button */}
           <button

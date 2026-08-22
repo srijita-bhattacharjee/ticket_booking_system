@@ -12,6 +12,31 @@ export class BookingsController {
     private readonly waitlistService: WaitlistService,
   ) {}
 
+  /**
+   * STEP 1: Create Razorpay Order
+   * Endpoint: POST /api/bookings/create-order
+   */
+  @Post('create-order')
+  async createRazorpayOrder(
+    @GetUser('id') userId: string,
+    @Body('holdId') holdId: string,
+    @Body('amount') amount: number,
+  ) {
+    return this.bookingsService.createRazorpayOrder(userId, holdId, amount || 0);
+  }
+
+  /**
+   * STEP 3: Verify Razorpay Payment Signature
+   * Endpoint: POST /api/bookings/verify-payment
+   */
+  @Post('verify-payment')
+  async verifyRazorpayPayment(
+    @GetUser('id') userId: string,
+    @Body() dto: any,
+  ) {
+    return this.bookingsService.verifyRazorpayPayment(userId, dto);
+  }
+
   @Post()
   async createBooking(
     @GetUser('id') userId: string,

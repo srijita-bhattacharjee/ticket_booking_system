@@ -41,6 +41,8 @@ export const holdService = {
 };
 
 export const bookingService = {
+  createRazorpayOrder: (holdId: string, amount: number) => api.post('/api/bookings/create-order', { holdId, amount }),
+  verifyRazorpayPayment: (data: any) => api.post('/api/bookings/verify-payment', data),
   create: (data: { holdId: string; idempotencyKey?: string; addons?: any[]; couponCode?: string; discountAmount?: number }) =>
     api.post(
       '/api/bookings',
