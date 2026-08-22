@@ -2,13 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { Ticket, User, LogOut, Shield, LayoutDashboard, Search, Gift, Heart, ShoppingBag, Sun, Moon, Utensils, Tag } from 'lucide-react';
 
 export default function Navbar() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/events?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/events');
+    }
+  };
   const { user, isAuthenticated, logout, isOrganiser, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -36,16 +47,16 @@ export default function Navbar() {
         </Link>
 
         {/* Search Bar */}
-        <div className="hidden md:flex items-center flex-1 max-w-md relative">
+        <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center flex-1 max-w-md relative">
           <Search className="w-4 h-4 theme-text-secondary absolute left-3 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search for events, movies, artists..."
+            placeholder="Search for events, movies, artists, venues..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-1.5 text-xs rounded-full theme-bg-elevated theme-border border theme-text-main focus:outline-none focus:border-theme-accent transition font-medium"
           />
-        </div>
+        </form>
 
         {/* Right Navigation & Quick Actions */}
         <div className="flex items-center space-x-3 sm:space-x-4" suppressHydrationWarning>

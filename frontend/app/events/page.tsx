@@ -10,14 +10,16 @@ import Image from 'next/image';
 function EventsContent() {
   const searchParams = useSearchParams();
   const typeParam = searchParams.get('type') || '';
+  const searchParam = searchParams.get('search') || '';
 
   const [events, setEvents] = useState<any[]>([]);
   const [typeFilter, setTypeFilter] = useState<string>(typeParam);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>(searchParam);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setTypeFilter(searchParams.get('type') || '');
+    setSearchQuery(searchParams.get('search') || '');
   }, [searchParams]);
 
   const fetchEvents = () => {
@@ -31,7 +33,7 @@ function EventsContent() {
 
   useEffect(() => {
     fetchEvents();
-  }, [typeFilter]);
+  }, [typeFilter, searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
