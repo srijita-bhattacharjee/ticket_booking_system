@@ -10,6 +10,7 @@ export interface CreateEventDto {
   eventDate: string;
   startTime: string;
   imageUrl?: string;
+  trailerUrl?: string;
   premiumPrice: number;
   standardPrice: number;
 }
@@ -119,6 +120,7 @@ export class EventsService {
         eventDate: new Date(dto.eventDate),
         startTime: dto.startTime,
         imageUrl: dto.imageUrl || null,
+        trailerUrl: dto.trailerUrl || null,
         status: EventStatus.ON_SALE,
       },
     });

@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { eventService, holdService, waitlistService } from '../../../services/api';
 import SeatMap from '../../../components/SeatMap';
 import WaitlistCard from '../../../components/WaitlistCard';
-import { Ticket, ArrowLeft, ShieldAlert, Sparkles, CheckCircle2, MapPin, Calendar, Clock } from 'lucide-react';
+import { Ticket, ArrowLeft, ShieldAlert, Sparkles, CheckCircle2, MapPin, Calendar, Clock, Play, Film } from 'lucide-react';
 
 function EventDetailContent() {
   const params = useParams();
@@ -145,6 +145,19 @@ function EventDetailContent() {
                   <Clock className="w-4 h-4 text-emerald-400" />
                   {event.startTime}
                 </span>
+
+                {/* Movie Trailer Watch Button (Only available for Movies) */}
+                {event.eventType === 'MOVIE' && (
+                  <a
+                    href={event.trailerUrl || 'https://www.youtube.com/results?search_query=' + encodeURIComponent(event.title + ' official trailer')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-pink-600 hover:bg-pink-700 text-white font-extrabold px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 shadow-lg transition transform hover:scale-105"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-white" />
+                    <span>Watch Trailer 🎬</span>
+                  </a>
+                )}
               </div>
             </div>
 

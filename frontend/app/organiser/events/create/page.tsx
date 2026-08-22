@@ -21,6 +21,7 @@ export default function CreateEventPage() {
     eventDate: '',
     startTime: '19:00',
     imageUrl: '',
+    trailerUrl: '',
     premiumPrice: 45,
     standardPrice: 25,
   });
@@ -192,6 +193,25 @@ export default function CreateEventPage() {
               </div>
             </div>
           </div>
+
+          {/* Movie Trailer URL (Only for Movie Screenings) */}
+          {form.eventType === 'MOVIE' && (
+            <div className="space-y-1.5 border-t theme-border pt-4">
+              <label className="block text-xs font-bold theme-text-secondary flex items-center gap-1.5">
+                <Film className="w-4 h-4 text-pink-500" /> Movie Trailer Link (YouTube / Vimeo)
+              </label>
+              <input
+                type="url"
+                placeholder="e.g. https://www.youtube.com/watch?v=TcMBFSGVi1c"
+                value={form.trailerUrl}
+                onChange={(e) => setForm({ ...form, trailerUrl: e.target.value })}
+                className="w-full theme-bg-input theme-border border rounded-xl p-3 text-xs theme-text-main focus:outline-none"
+              />
+              <p className="text-[10px] theme-text-secondary">
+                Customers will be able to click &quot;Watch Trailer 🎬 ▶&quot; to preview movie clips before reserving seats.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>

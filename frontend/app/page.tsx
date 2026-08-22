@@ -98,14 +98,15 @@ export default function HomePage() {
                 <ChevronRight className="w-4 h-4" />
               </Link>
 
-              <button
-                type="button"
-                onClick={() => alert('Launching trailer preview...')}
-                className="bg-gray-900/70 hover:bg-gray-900/90 text-white font-bold px-6 py-3.5 rounded-full text-xs sm:text-sm border border-gray-700 backdrop-blur-md flex items-center gap-2 transition"
+              <a
+                href={featuredEvent?.trailerUrl || 'https://www.youtube.com/watch?v=Way9Dexny3w'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-gray-900/70 hover:bg-gray-900/90 text-white font-bold px-6 py-3.5 rounded-full text-xs sm:text-sm border border-gray-700 backdrop-blur-md flex items-center gap-2 transition transform hover:-translate-y-0.5"
               >
-                <Play className="w-4 h-4 fill-white" />
+                <Play className="w-4 h-4 fill-white text-white" />
                 <span>Watch Trailer</span>
-              </button>
+              </a>
             </div>
 
             {/* 3 Trust Badges below Hero */}

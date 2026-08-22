@@ -139,6 +139,7 @@ model Event {
   eventDate   DateTime    @map("event_date")
   startTime   String      @map("start_time")
   imageUrl    String?     @map("image_url")
+  trailerUrl  String?     @map("trailer_url")
   status      EventStatus @default(ON_SALE)
   createdAt   DateTime    @default(now()) @map("created_at")
 
