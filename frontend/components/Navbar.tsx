@@ -147,21 +147,27 @@ export default function Navbar() {
       </div>
 
       {/* Sub-Navigation Categories Bar */}
-      <div className="border-t theme-border py-2 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-center gap-6 overflow-x-auto text-xs font-bold theme-text-secondary">
-        <Link href="/events?type=MOVIE" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated">
+      <div className="border-t theme-border py-2 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-center gap-4 sm:gap-6 overflow-x-auto text-xs font-bold theme-text-secondary">
+        <Link href="/events?type=MOVIE" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated whitespace-nowrap">
           Movies
         </Link>
-        <Link href="/events?type=CONCERT" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated">
+        <Link href="/events?type=CONCERT" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated whitespace-nowrap">
           Concerts
         </Link>
-        <Link href="/events" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated">
-          Events
+        <Link href="/events" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated whitespace-nowrap">
+          All Events
         </Link>
-        <Link href="/events?type=THEATRE" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated">
+        <Link href="/events?type=THEATRE" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated whitespace-nowrap">
           Plays
         </Link>
-        <Link href="/events?type=SPORTS" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated">
+        <Link href="/events?type=SPORTS" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated whitespace-nowrap">
           Sports
+        </Link>
+        <Link href="/events?type=COMEDY" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated whitespace-nowrap">
+          Comedy
+        </Link>
+        <Link href="/events?type=WORKSHOP" className="hover:theme-text-main transition px-3 py-0.5 rounded-full hover:theme-bg-elevated whitespace-nowrap">
+          Workshops
         </Link>
       </div>
     </header>

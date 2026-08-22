@@ -18,6 +18,10 @@ enum Role {
 enum EventType {
   MOVIE
   CONCERT
+  THEATRE
+  SPORTS
+  COMEDY
+  WORKSHOP
 }
 
 enum EventStatus {

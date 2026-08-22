@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('🌱 Starting database seed with multi-category events...');
 
   // Clean existing data
   await prisma.bookingAddon.deleteMany();
@@ -55,15 +55,6 @@ async function main() {
     },
   });
 
-  const customer2 = await prisma.user.create({
-    data: {
-      name: 'Alice Smith',
-      email: 'alice@example.com',
-      passwordHash,
-      role: Role.CUSTOMER,
-    },
-  });
-
   console.log('✅ Users created');
 
   // 2. Create Venues
@@ -78,7 +69,7 @@ async function main() {
 
   const venue2 = await prisma.venue.create({
     data: {
-      name: 'Metropolitan Arena',
+      name: 'Metropolitan Arena & Stadium',
       location: 'Main Olympic Stadium Complex',
       imageUrl: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1200&q=80',
       createdById: admin.id,
@@ -125,65 +116,185 @@ async function main() {
 
   console.log('✅ Venue seats created');
 
-  // 4. Create Events
-  const event1 = await prisma.event.create({
-    data: {
-      organiserId: organiser.id,
-      venueId: venue1.id,
-      title: 'Inception 4K IMAX Special Screening',
-      description: 'Experience Christopher Nolan’s masterpiece in mind-bending 4K IMAX audio and visual clarity.',
+  // 4. Create Events Across All Categories
+  const eventsData = [
+    // 🎬 MOVIES
+    {
+      title: 'Avengers: Endgame — Special Re-Screening',
+      description: 'The epic finale of the Infinity Saga on the big screen with Dolby Atmos surround sound.',
       eventType: EventType.MOVIE,
-      eventDate: new Date(Date.now() + 86400000 * 3), // 3 days from now
-      startTime: '19:30',
+      eventDate: new Date(Date.now() + 86400000 * 2),
+      startTime: '18:00',
+      venueId: venue1.id,
       imageUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=80',
-      status: EventStatus.ON_SALE,
+      premPrice: 25.0,
+      stdPrice: 15.0,
     },
-  });
+    {
+      title: 'Dune: Part Two (IMAX 3D Experience)',
+      description: 'Follow Paul Atreides’ mythic journey on Arrakis in stunning IMAX 3D resolution.',
+      eventType: EventType.MOVIE,
+      eventDate: new Date(Date.now() + 86400000 * 4),
+      startTime: '20:30',
+      venueId: venue1.id,
+      imageUrl: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 28.0,
+      stdPrice: 18.0,
+    },
 
-  const event2 = await prisma.event.create({
-    data: {
-      organiserId: organiser.id,
-      venueId: venue2.id,
+    // 🎤 CONCERTS
+    {
       title: 'Coldplay — Music of the Spheres World Tour',
       description: 'Live in concert featuring hit anthems Yellow, Viva La Vida, Fix You, and breathtaking light displays.',
       eventType: EventType.CONCERT,
-      eventDate: new Date(Date.now() + 86400000 * 7), // 7 days from now
+      eventDate: new Date(Date.now() + 86400000 * 7),
       startTime: '20:00',
+      venueId: venue2.id,
       imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
-      status: EventStatus.ON_SALE,
+      premPrice: 150.0,
+      stdPrice: 85.0,
     },
-  });
+    {
+      title: 'Diljit Dosanjh Live — Dil-Luminati Tour',
+      description: 'Electrifying Punjabi pop experience live on stage with full live band performance.',
+      eventType: EventType.CONCERT,
+      eventDate: new Date(Date.now() + 86400000 * 10),
+      startTime: '19:00',
+      venueId: venue2.id,
+      imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 180.0,
+      stdPrice: 95.0,
+    },
 
-  console.log('✅ Events created');
+    // 🎭 PLAYS / THEATRE
+    {
+      title: 'Hamlet — Globe Theatre Production',
+      description: 'Shakespeare’s masterpiece drama performed live by world-renowned Shakespearean actors.',
+      eventType: EventType.THEATRE,
+      eventDate: new Date(Date.now() + 86400000 * 5),
+      startTime: '18:30',
+      venueId: venue1.id,
+      imageUrl: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 65.0,
+      stdPrice: 40.0,
+    },
+    {
+      title: 'The Phantom of the Opera',
+      description: 'The legendary musical love story featuring haunting orchestral scores and dramatic theatrical sets.',
+      eventType: EventType.THEATRE,
+      eventDate: new Date(Date.now() + 86400000 * 12),
+      startTime: '19:30',
+      venueId: venue1.id,
+      imageUrl: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 120.0,
+      stdPrice: 75.0,
+    },
 
-  // 5. Populate Event Seats with Tiered Pricing
-  for (const vs of venue1Seats) {
-    await prisma.eventSeat.create({
+    // ⚽ SPORTS
+    {
+      title: 'India vs Australia T20 International Series',
+      description: 'High-octane T20 cricket derby featuring world champions live in action.',
+      eventType: EventType.SPORTS,
+      eventDate: new Date(Date.now() + 86400000 * 8),
+      startTime: '19:00',
+      venueId: venue2.id,
+      imageUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 250.0,
+      stdPrice: 120.0,
+    },
+    {
+      title: 'IPL Championship Final Derby',
+      description: 'The ultimate T20 championship showdown packed with roaring crowds and trophy celebrations.',
+      eventType: EventType.SPORTS,
+      eventDate: new Date(Date.now() + 86400000 * 15),
+      startTime: '19:30',
+      venueId: venue2.id,
+      imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 300.0,
+      stdPrice: 150.0,
+    },
+
+    // 🎙️ COMEDY
+    {
+      title: 'Zakir Khan Live — Tathastu Standup',
+      description: 'Unfiltered laughter, relatable stories, and iconic punchlines live with Zakir Khan.',
+      eventType: EventType.COMEDY,
+      eventDate: new Date(Date.now() + 86400000 * 6),
+      startTime: '20:00',
+      venueId: venue1.id,
+      imageUrl: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 50.0,
+      stdPrice: 30.0,
+    },
+    {
+      title: 'Anubhav Singh Bassi — Bas Kar Bassi',
+      description: 'Non-stop hilarious storytelling about life, friends, and career choices.',
+      eventType: EventType.COMEDY,
+      eventDate: new Date(Date.now() + 86400000 * 14),
+      startTime: '18:00',
+      venueId: venue1.id,
+      imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 45.0,
+      stdPrice: 25.0,
+    },
+
+    // 🎨 WORKSHOPS
+    {
+      title: 'Mastering Pottery & Ceramics Workshop',
+      description: 'Hands-on pottery wheel workshop guided by master ceramic sculptors with take-home creations.',
+      eventType: EventType.WORKSHOP,
+      eventDate: new Date(Date.now() + 86400000 * 9),
+      startTime: '11:00',
+      venueId: venue1.id,
+      imageUrl: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 75.0,
+      stdPrice: 45.0,
+    },
+    {
+      title: 'AI & Next.js Fullstack Masterclass',
+      description: 'Build production-grade AI web applications with Next.js 14, NestJS, and vector databases.',
+      eventType: EventType.WORKSHOP,
+      eventDate: new Date(Date.now() + 86400000 * 11),
+      startTime: '10:00',
+      venueId: venue1.id,
+      imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+      premPrice: 99.0,
+      stdPrice: 59.0,
+    },
+  ];
+
+  for (const ed of eventsData) {
+    const createdEvent = await prisma.event.create({
       data: {
-        eventId: event1.id,
-        venueSeatId: vs.id,
-        category: vs.category,
-        price: vs.category === SeatCategory.PREMIUM ? 25.00 : 15.00,
-        status: SeatStatus.AVAILABLE,
+        organiserId: organiser.id,
+        venueId: ed.venueId,
+        title: ed.title,
+        description: ed.description,
+        eventType: ed.eventType,
+        eventDate: ed.eventDate,
+        startTime: ed.startTime,
+        imageUrl: ed.imageUrl,
+        status: EventStatus.ON_SALE,
       },
     });
+
+    const seatsToMap = ed.venueId === venue1.id ? venue1Seats : venue2Seats;
+    for (const vs of seatsToMap) {
+      await prisma.eventSeat.create({
+        data: {
+          eventId: createdEvent.id,
+          venueSeatId: vs.id,
+          category: vs.category,
+          price: vs.category === SeatCategory.PREMIUM ? ed.premPrice : ed.stdPrice,
+          status: SeatStatus.AVAILABLE,
+        },
+      });
+    }
   }
 
-  for (const vs of venue2Seats) {
-    await prisma.eventSeat.create({
-      data: {
-        eventId: event2.id,
-        venueSeatId: vs.id,
-        category: vs.category,
-        price: vs.category === SeatCategory.PREMIUM ? 150.00 : 85.00,
-        status: SeatStatus.AVAILABLE,
-      },
-    });
-  }
+  console.log('✅ Multi-category events created and mapped with seats');
 
-  console.log('✅ Event seats mapped with pricing');
-
-  // 6. Create Food Stalls & Menus (Admin)
+  // 5. Create Food Stalls & Menus
   const stall1 = await prisma.foodStall.create({
     data: {
       venueId: venue1.id,
@@ -198,91 +309,82 @@ async function main() {
     data: {
       venueId: venue2.id,
       name: 'Metropolitan VIP Arena Lounge',
-      description: 'Premium gourmet sliders, craft sodas, and stadium snacks.',
-      location: 'Metropolitan Arena — VIP Gate 2',
+      description: 'Artisanal burgers, loaded fries, and craft sodas.',
+      location: 'Metropolitan Arena — Gate B VIP Concourse',
       imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
     },
   });
 
-  // Create Menu Items / Combos
-  const item1 = await prisma.menuItem.create({
-    data: {
-      stallId: stall1.id,
-      name: 'Jumbo Butter Popcorn + Large Soda Combo',
-      description: 'Crispy warm butter popcorn with 32oz refreshing beverage.',
-      category: 'Combo',
-      price: 14.99,
-      imageUrl: 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?auto=format&fit=crop&w=800&q=80',
-    },
-  });
-
-  const item2 = await prisma.menuItem.create({
-    data: {
-      stallId: stall1.id,
-      name: 'Loaded Loaded Cheese Nachos',
-      description: 'Tortilla chips drenched in warm jalapeno cheese and salsa.',
-      category: 'Snack',
-      price: 9.50,
-      imageUrl: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=800&q=80',
-    },
-  });
-
-  const item3 = await prisma.menuItem.create({
-    data: {
-      stallId: stall2.id,
-      name: 'Stadium Gourmet Cheeseburger + Craft Beer/Soda',
-      description: 'Angus beef burger with cheddar, caramelized onions and beverage.',
-      category: 'Combo',
-      price: 18.99,
-      imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
-    },
+  await prisma.menuItem.createMany({
+    data: [
+      {
+        stallId: stall1.id,
+        name: 'Jumbo Butter Popcorn + Cola Combo',
+        description: 'Large tub of warm butter popcorn with a 750ml fountain soda.',
+        category: 'SNACK',
+        price: 12.0,
+        imageUrl: 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?auto=format&fit=crop&w=500&q=80',
+      },
+      {
+        stallId: stall1.id,
+        name: 'Cheesy Jalapeño Nachos Bowl',
+        description: 'Crispy tortilla chips smothered in warm cheese sauce & jalapeños.',
+        category: 'SNACK',
+        price: 9.5,
+        imageUrl: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=500&q=80',
+      },
+      {
+        stallId: stall2.id,
+        name: 'VIP Angus Beef Burger & Truffle Fries',
+        description: 'Smash Angus patty, aged cheddar, truffle mayo, and Seasoned Fries.',
+        category: 'MEAL',
+        price: 18.5,
+        imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80',
+      },
+    ],
   });
 
   console.log('✅ Food stalls & menu combos created');
 
-  // 7. Create Partnership Proof (Organiser)
-  const partnership1 = await prisma.partnershipProof.create({
+  // 6. Food Coupons & Proof of Partnership
+  const proof = await prisma.partnershipProof.create({
     data: {
       organiserId: organiser.id,
       foodStallId: stall1.id,
-      partnerName: 'Cinema Gourmet Snacks LLC',
-      documentUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
-      agreementRef: 'AGREE-CINEMA-2026-08',
+      partnerName: 'PVR Gourmet Popcorn Partner Contract',
+      documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      agreementRef: 'AGR-POPCORN-2025-001',
       status: 'APPROVED',
-      notes: 'Verified partner agreement for movie screenings discount vouchers.',
     },
   });
 
-  // 8. Create Food Coupons
-  await prisma.foodCoupon.create({
-    data: {
-      partnershipId: partnership1.id,
-      foodStallId: stall1.id,
-      eventId: event1.id,
-      code: 'POPCORN15',
-      title: '15% Off Popcorn & Soda Combos',
-      description: 'Get 15% discount on any jumbo combo during Inception screening.',
-      discountPercent: 15,
-      minSpend: 10,
-      imageUrl: 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?auto=format&fit=crop&w=800&q=80',
-    },
-  });
-
-  await prisma.foodCoupon.create({
-    data: {
-      partnershipId: partnership1.id,
-      foodStallId: stall1.id,
-      code: 'FEAST5',
-      title: '$5 Off Gourmet Snack Orders',
-      description: 'Save $5 on orders over $15 at Cinema Gourmet Snacks.',
-      discountAmount: 5.0,
-      minSpend: 15,
-      imageUrl: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=800&q=80',
-    },
+  await prisma.foodCoupon.createMany({
+    data: [
+      {
+        partnershipId: proof.id,
+        foodStallId: stall1.id,
+        code: 'POPCORN15',
+        title: '15% Off Popcorn Combos',
+        description: 'Enjoy 15% discount on all gourmet popcorn and beverages.',
+        discountPercent: 15.0,
+        minSpend: 20.0,
+        isActive: true,
+      },
+      {
+        partnershipId: proof.id,
+        foodStallId: stall1.id,
+        code: 'FEAST5',
+        title: '$5 Off Feast Combos',
+        description: 'Save $5 flat on all arena meals over $15.',
+        discountAmount: 5.0,
+        minSpend: 15.0,
+        isActive: true,
+      },
+    ],
   });
 
   console.log('✅ Partnership proof & food coupons created');
-  console.log('🎉 Database seeding complete!');
+  console.log('🎉 Database seeding complete across Movies, Concerts, Plays, Sports, Comedy, and Workshops!');
 }
 
 main()
