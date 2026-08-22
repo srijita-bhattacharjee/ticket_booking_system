@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { eventService } from '../../services/api';
-import { Search, Film, Music, Sparkles, Trophy, Mic, Palette, MapPin, Calendar, ChevronRight, X } from 'lucide-react';
+import { Film, Music, Sparkles, Trophy, Mic, Palette, MapPin, Calendar, ChevronRight, X } from 'lucide-react';
 import Image from 'next/image';
 
 function EventsContent() {
@@ -23,56 +23,60 @@ function EventsContent() {
     setSearchQuery(searchParams.get('search') || '');
   }, [searchParams]);
 
-  const fetchEvents = (type?: string, search?: string) => {
+  useEffect(() => {
     setLoading(true);
-    const activeType = type !== undefined ? type : typeFilter;
-    const activeSearch = search !== undefined ? search : searchQuery;
-
     eventService
-      .getAll(activeType || undefined, activeSearch.trim() || undefined)
+      .getAll(typeFilter || undefined, searchQuery || undefined)
       .then((res) => setEvents(res.data))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchEvents();
   }, [typeFilter, searchQuery]);
 
   const handleCategorySelect = (type: string) => {
-    setTypeFilter(type);
-    setSearchQuery('');
-    if (type) {
-      router.push(`/events?type=${type}`);
-    } else {
-      router.push('/events');
-    }
+    const params = new URLSearchParams();
+    if (type) params.set('type', type);
+    if (searchQuery) params.set('search', searchQuery);
+    router.push(`/events${params.toString() ? '?' + params.toString() : ''}`);
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/events?${typeFilter ? `type=${typeFilter}&` : ''}search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      router.push(typeFilter ? `/events?type=${typeFilter}` : '/events');
-    }
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery('');
-    router.push(typeFilter ? `/events?type=${typeFilter}` : '/events');
+  const clearSearch = () => {
+    const params = new URLSearchParams();
+    if (typeFilter) params.set('type', typeFilter);
+    router.push(`/events${params.toString() ? '?' + params.toString() : ''}`);
   };
 
   return (
     <div className="space-y-8 py-4">
       <div>
-        <h1 className="text-3xl font-extrabold theme-text-main">Events & Shows Catalog</h1>
-        <p className="text-sm theme-text-secondary">Explore movies, concerts, plays, live sports, comedy shows, and masterclass workshops</p>
+        <h1 className="text-3xl font-extrabold theme-text-main">Events &amp; Shows Catalog</h1>
+        <p className="text-sm theme-text-secondary">
+          Explore movies, concerts, plays, live sports, comedy shows, and masterclass workshops
+        </p>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 theme-bg-card theme-border border p-4 rounded-2xl">
-        <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0">
+      {/* Active Search Badge */}
+      {searchQuery && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs theme-text-secondary">Showing results for:</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-bold">
+            &ldquo;{searchQuery}&rdquo;
+            <button
+              onClick={clearSearch}
+              className="hover:text-white transition ml-0.5"
+              aria-label="Clear search"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </span>
+          <span className="text-xs theme-text-secondary">
+            ({events.length} result{events.length !== 1 ? 's' : ''})
+          </span>
+        </div>
+      )}
+
+      {/* Category Filter Bar */}
+      <div className="theme-bg-card theme-border border p-4 rounded-2xl">
+        <div className="flex items-center gap-2 overflow-x-auto w-full pb-2 lg:pb-0">
           <button
             onClick={() => handleCategorySelect('')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
@@ -142,45 +146,23 @@ function EventsContent() {
             Workshops
           </button>
         </div>
-
-        <form onSubmit={handleSearchSubmit} className="relative w-full lg:w-72 flex items-center">
-          <input
-            type="text"
-            placeholder="Search titles or venues..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full theme-bg-input theme-border border rounded-xl px-4 py-2 text-xs theme-text-main focus:outline-none pr-14"
-          />
-          {searchQuery ? (
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className="absolute right-8 theme-text-secondary hover:theme-text-accent p-1"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          ) : null}
-          <button type="submit" className="absolute right-3 theme-text-secondary hover:theme-text-accent">
-            <Search className="w-4 h-4" />
-          </button>
-        </form>
       </div>
 
       {/* Catalog Grid */}
       {loading ? (
         <div className="text-center py-16 theme-text-secondary text-xs">Loading catalog...</div>
       ) : events.length === 0 ? (
-        <div className="text-center py-16 theme-text-secondary theme-bg-card theme-border border rounded-2xl text-xs space-y-3">
-          <p>No matching events found for your search query or filter.</p>
+        <div className="text-center py-16 theme-text-secondary theme-bg-card theme-border border rounded-2xl text-xs space-y-3 p-8">
+          <p>
+            {searchQuery
+              ? `No events found matching "${searchQuery}".`
+              : 'No events currently listed under this category.'}
+          </p>
           <button
-            onClick={() => {
-              setTypeFilter('');
-              setSearchQuery('');
-              router.push('/events');
-            }}
+            onClick={clearSearch}
             className="theme-btn-primary px-4 py-2 rounded-xl text-xs font-bold transition"
           >
-            Clear Filters & Show All Events
+            {searchQuery ? 'Clear Search' : 'Show All Events'}
           </button>
         </div>
       ) : (
@@ -193,13 +175,15 @@ function EventsContent() {
               <div>
                 <div className="relative h-48 w-full overflow-hidden">
                   <Image
-                    src={evt.imageUrl || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=800&q=80'}
+                    src={
+                      evt.imageUrl ||
+                      'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=800&q=80'
+                    }
                     alt={evt.title}
                     fill
                     className="object-cover group-hover:scale-105 transition duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80" />
-
                   <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-pink-300 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-pink-500/30">
                     {evt.eventType}
                   </span>
@@ -214,7 +198,9 @@ function EventsContent() {
                   <div className="pt-2 space-y-1 text-xs theme-text-secondary">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 theme-text-accent" />
-                      <span>{new Date(evt.eventDate).toLocaleDateString()} at {evt.startTime}</span>
+                      <span>
+                        {new Date(evt.eventDate).toLocaleDateString()} at {evt.startTime}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 theme-text-accent" />

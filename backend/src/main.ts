@@ -15,7 +15,14 @@ async function bootstrap() {
     origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'bypass-tunnel-reminder',
+      'ngrok-skip-browser-warning',
+      'Idempotency-Key',
+    ],
   });
 
   // 3. Strict Input Validation & Payload Sanitization

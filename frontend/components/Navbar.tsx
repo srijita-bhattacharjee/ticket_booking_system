@@ -1,31 +1,43 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
-import { Ticket, User, LogOut, Shield, LayoutDashboard, Search, Gift, Heart, ShoppingBag, Sun, Moon, Utensils, Tag } from 'lucide-react';
+import { Ticket, LogOut, Shield, LayoutDashboard, Gift, Heart, Sun, Moon, Search, X } from 'lucide-react';
 
 export default function Navbar() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/events?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      router.push('/events');
-    }
-  };
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { user, isAuthenticated, logout, isOrganiser, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) {
+      router.push(`/events?search=${encodeURIComponent(q)}`);
+      setSearchExpanded(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleSearchToggle = () => {
+    setSearchExpanded(true);
+    setTimeout(() => searchInputRef.current?.focus(), 50);
+  };
+
+  const handleSearchBlur = () => {
+    if (!searchQuery.trim()) setSearchExpanded(false);
+  };
 
   return (
     <header className="theme-bg-nav theme-border border-b sticky top-0 z-50 transition-colors shadow-md">
@@ -46,20 +58,51 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center flex-1 max-w-md relative">
-          <Search className="w-4 h-4 theme-text-secondary absolute left-3 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search for events, movies, artists, venues..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-full theme-bg-elevated theme-border border theme-text-main focus:outline-none focus:border-theme-accent transition font-medium"
-          />
+        {/* Search Bar — center, expands on focus */}
+        <form
+          onSubmit={handleSearch}
+          className={`flex-1 max-w-md mx-4 hidden sm:flex items-center transition-all duration-300`}
+        >
+          <div className={`relative flex items-center w-full rounded-full border transition-all duration-300 ${
+            searchExpanded
+              ? 'theme-bg-elevated theme-border shadow-lg ring-1 ring-purple-500/40'
+              : 'theme-bg-elevated theme-border'
+          }`}>
+            <button
+              type="button"
+              onClick={handleSearchToggle}
+              className="pl-3 pr-2 theme-text-secondary hover:theme-text-main transition"
+              tabIndex={-1}
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchExpanded(true)}
+              onBlur={handleSearchBlur}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Search events, venues, artists..."
+              className="flex-1 bg-transparent py-2 pr-2 text-xs theme-text-main placeholder:theme-text-secondary outline-none min-w-0"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
+                className="pr-3 theme-text-secondary hover:theme-text-main transition"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </form>
 
         {/* Right Navigation & Quick Actions */}
-        <div className="flex items-center space-x-3 sm:space-x-4" suppressHydrationWarning>
+        <div className="flex items-center space-x-3 sm:space-x-4 shrink-0" suppressHydrationWarning>
           <Link href="/offers" className="theme-text-secondary hover:theme-text-main transition text-xs font-semibold flex items-center gap-1.5">
             <Gift className="w-4 h-4 text-pink-500" />
             <span className="hidden sm:inline">Offers</span>
@@ -156,6 +199,7 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
 
       {/* Sub-Navigation Categories Bar */}
       <div className="border-t theme-border py-2 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-center gap-4 sm:gap-6 overflow-x-auto text-xs font-bold theme-text-secondary">
