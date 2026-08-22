@@ -6,30 +6,30 @@
 
 :root,
 [data-theme="dark"] {
-  --bg-main: #0D0F12;
-  --bg-nav: #12151A;
-  --bg-card: #181C22;
-  --bg-card-elevated: #20242B;
-  --primary-accent: #FF6847;
-  --accent-hover: #FF8368;
-  --text-main: #F5F5F2;
-  --text-secondary: #A5A8AD;
-  --border-color: #2B3038;
-  --color-success: #45C486;
-  --input-bg: #0D0F12;
+  --bg-main: #0A0C10;
+  --bg-nav: #10131A;
+  --bg-card: #151922;
+  --bg-card-elevated: #1D222E;
+  --primary-accent: #FF5A36;
+  --accent-hover: #FF7354;
+  --text-main: #F8F9FA;
+  --text-secondary: #9DA3AF;
+  --border-color: #242B38;
+  --color-success: #34D399;
+  --input-bg: #0E1117;
 }
 
 [data-theme="light"] {
-  --bg-main: #FFF9F5;
+  --bg-main: #F8F9FA;
   --bg-nav: #FFFFFF;
   --bg-card: #FFFFFF;
-  --bg-card-elevated: #FFF1EB;
-  --primary-accent: #E95432;
-  --accent-hover: #D94727;
-  --text-main: #17191D;
-  --text-secondary: #686C73;
-  --border-color: #E7E1DD;
-  --color-success: #299B68;
+  --bg-card-elevated: #F1F3F5;
+  --primary-accent: #E94E2B;
+  --accent-hover: #D73F1C;
+  --text-main: #0F172A;
+  --text-secondary: #64748B;
+  --border-color: #E2E8F0;
+  --color-success: #10B981;
   --input-bg: #FFFFFF;
 }
 
@@ -81,7 +81,7 @@ body {
 }
 .theme-btn-primary:hover {
   background-color: var(--accent-hover) !important;
-  animation: jitter 0.2s ease-in-out infinite alternate;
+  transform: translateY(-1px);
 }
 
 .theme-btn-secondary {
@@ -94,100 +94,44 @@ body {
   background-color: var(--bg-card) !important;
 }
 
-.theme-badge-accent {
-  background-color: var(--bg-card-elevated) !important;
-  color: var(--primary-accent) !important;
-  border: 1px solid var(--border-color) !important;
+/* --- TICKETBAY / TICKETVERSE CATEGORY TILES --- */
+.category-card-movies {
+  background: linear-gradient(135deg, rgba(153, 27, 27, 0.85) 0%, rgba(88, 28, 135, 0.9) 100%);
+}
+.category-card-concerts {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.85) 0%, rgba(30, 64, 175, 0.9) 100%);
+}
+.category-card-plays {
+  background: linear-gradient(135deg, rgba(124, 45, 18, 0.85) 0%, rgba(146, 64, 14, 0.9) 100%);
+}
+.category-card-sports {
+  background: linear-gradient(135deg, rgba(20, 83, 45, 0.85) 0%, rgba(15, 118, 110, 0.9) 100%);
+}
+.category-card-comedy {
+  background: linear-gradient(135deg, rgba(107, 33, 168, 0.85) 0%, rgba(157, 23, 77, 0.9) 100%);
+}
+.category-card-workshops {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.85) 0%, rgba(13, 148, 136, 0.9) 100%);
 }
 
-.theme-badge-success {
-  background-color: var(--bg-card-elevated) !important;
-  color: var(--color-success) !important;
-  border: 1px solid var(--border-color) !important;
+/* Hero Stage Backdrop Glow */
+.hero-stage-bg {
+  background: radial-gradient(circle at 70% 30%, rgba(236, 72, 153, 0.25) 0%, rgba(124, 58, 237, 0.2) 35%, rgba(10, 12, 16, 0.95) 80%),
+              url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1800&q=80');
+  background-size: cover;
+  background-position: center;
 }
 
-/* --- HIGH ENERGY CUSTOM KEYFRAME ANIMATIONS --- */
-
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.animate-spin-slow {
-  animation: spinSlow 12s linear infinite;
+/* Promo Banner Glow */
+.promo-banner-bg {
+  background: linear-gradient(135deg, #3B0764 0%, #1E1B4B 50%, #4C0519 100%);
 }
 
+/* Custom Keyframes */
 @keyframes floatSlow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(1deg); }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 .animate-float-slow {
   animation: floatSlow 4s ease-in-out infinite;
-}
-
-@keyframes orbit {
-  0% { transform: rotate(0deg) translateX(45px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(45px) rotate(-360deg); }
-}
-.animate-orbit {
-  animation: orbit 8s linear infinite;
-}
-
-@keyframes marqueeLeft {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
-}
-.animate-marquee-left {
-  display: flex;
-  width: 200%;
-  animation: marqueeLeft 20s linear infinite;
-}
-
-@keyframes marqueeRight {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0%); }
-}
-.animate-marquee-right {
-  display: flex;
-  width: 200%;
-  animation: marqueeRight 20s linear infinite;
-}
-
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.animate-gradient-shift {
-  background-size: 200% 200%;
-  animation: gradientShift 6s ease infinite;
-}
-
-@keyframes glitchSnap {
-  0%, 94%, 100% { transform: translate(0); text-shadow: none; }
-  95% { transform: translate(-2px, 1px); text-shadow: 2px 0 #ff0055, -2px 0 #ffee00; }
-  97% { transform: translate(2px, -1px); text-shadow: -2px 0 #ff0055, 2px 0 #ffee00; }
-}
-.animate-glitch {
-  animation: glitchSnap 3.5s infinite;
-}
-
-@keyframes sheenSweep {
-  0% { transform: translateX(-150%) skewX(-20deg); }
-  100% { transform: translateX(150%) skewX(-20deg); }
-}
-.group:hover .animate-sheen {
-  animation: sheenSweep 0.75s ease-in-out;
-}
-
-@keyframes shimmer {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.08); }
-}
-.animate-shimmer {
-  animation: shimmer 2s infinite ease-in-out;
-}
-
-@keyframes jitter {
-  0% { transform: scale(1.02) rotate(-0.5deg); }
-  100% { transform: scale(1.02) rotate(0.5deg); }
 }

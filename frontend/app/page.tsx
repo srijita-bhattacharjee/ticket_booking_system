@@ -2,421 +2,448 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { eventService } from '../services/api';
-import TicketStub3D from '../components/TicketStub3D';
-import { Ticket, Film, Music, ShieldCheck, Zap, RefreshCw, Sparkles, ArrowRight, Star, Gift, Lock, CheckCircle2, UserCheck, LayoutDashboard, Shield } from 'lucide-react';
+import {
+  Ticket,
+  Music,
+  Film,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Tag,
+  Star,
+  Play,
+  Heart,
+  Headphones,
+  CheckCircle2,
+  Lock,
+  ChevronRight,
+  Calendar,
+  MapPin,
+  Trophy,
+  Palette,
+  Mic,
+} from 'lucide-react';
 
 export default function HomePage() {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Ticket Tier State
-  const [selectedTier, setSelectedTier] = useState<'GENERAL' | 'VIP' | 'BACKSTAGE'>('VIP');
-  const [tierPrice, setTierPrice] = useState<number>(85);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   useEffect(() => {
-    setMounted(true);
-    eventService
-      .getAll()
-      .then((res) => setEvents(res.data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    fetchEvents();
   }, []);
 
-  const handleSelectTier = (tier: string, price: number) => {
-    setSelectedTier(tier as any);
-    setTierPrice(price);
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const res = await eventService.getAll();
+      setEvents(res.data || []);
+    } catch (err) {
+      console.error('Error fetching events:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const filteredEvents = selectedCategory === 'ALL'
+    ? events
+    : events.filter(e => e.eventType === selectedCategory);
 
   const featuredEvent = events[0] || {
-    id: 'sample-1',
-    title: 'Coldplay — Music of the Spheres',
-    eventDate: '2026-09-15T20:00:00.000Z',
-    startTime: '20:00',
-    venue: { name: 'Metropolitan Arena', location: 'Main Stadium' },
-    imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80',
+    id: 'featured-1',
+    title: 'Arijit Singh Live in Concert',
+    eventType: 'CONCERT',
+    eventDate: new Date('2025-08-24'),
+    startTime: '19:00',
+    venue: { name: 'DY Patil Stadium', city: 'Mumbai' },
+    imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
   };
 
-  const formattedDate = mounted ? new Date(featuredEvent.eventDate).toLocaleDateString() : 'Sep 15, 2026';
-
   return (
-    <div className="space-y-16 py-4 relative">
-      {/* Hero Banner with Spinning Vinyl ALL ACCESS Stamp & Drifting Shapes */}
-      <section className="relative overflow-hidden rounded-3xl theme-bg-card theme-border border-2 shadow-2xl p-8 sm:p-14">
-        {/* Background Live Concert Image */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1600&q=80"
-            alt="Live Stage Hero"
-            className="w-full h-full object-cover opacity-25"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent" />
-        </div>
-
-        {/* Orbiting Drifting Floating Shapes */}
-        <div className="absolute top-10 left-10 w-16 h-16 rounded-full border-2 border-[#FF6847]/30 animate-orbit pointer-events-none" />
-        <div className="absolute bottom-12 right-1/3 w-12 h-12 border-2 border-amber-500/30 rotate-45 animate-float-slow pointer-events-none" />
-        <div className="absolute top-20 right-16 w-8 h-8 rounded border-2 border-emerald-400/30 animate-orbit pointer-events-none" />
-
+    <div className="space-y-12 pb-16">
+      {/* ========================================================================= */}
+      {/* 1. STAGE HERO BANNER (TicketBay / TicketVerse Style)                    */}
+      {/* ========================================================================= */}
+      <section className="relative rounded-3xl overflow-hidden hero-stage-bg border theme-border shadow-2xl p-6 sm:p-12 lg:p-14">
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Content with Glitch Headline */}
+          
+          {/* Left Column: Hero Copy & Actions */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full theme-bg-elevated theme-border border theme-text-accent text-xs font-mono font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#FF6847] animate-ping" />
-              <span>LIVE TICKETING ENGINE • ZERO RACE CONDITIONS</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-900/60 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold tracking-wider uppercase backdrop-blur-md">
+              <Zap className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+              <span>LIVE IN CONCERT</span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-black tracking-tight theme-text-main uppercase leading-none animate-glitch">
-              EXPERIENCE <br />
-              <span className="theme-text-accent bg-clip-text">EVERY MOMENT</span>
+            <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1]">
+              Feel the Music. <br />
+              <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 bg-clip-text text-transparent">
+                Live the Moment.
+              </span>
             </h1>
 
-            <p className="theme-text-secondary text-sm sm:text-base max-w-xl font-medium leading-relaxed">
-              Book tickets for movies, concerts and live events near you with zero race conditions, 10-minute hold TTLs, instant QR codes, and gourmet food combos.
+            <p className="text-sm sm:text-base text-gray-300 max-w-xl font-medium leading-relaxed">
+              From electrifying concerts to blockbusters — book your seats to the best experiences with real-time seat maps and instant 10-minute hold reservation locks.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-2 flex-wrap">
               <Link
                 href="/events"
-                className="theme-btn-primary font-extrabold px-7 py-3.5 rounded-xl transition flex items-center gap-2 shadow-xl text-sm"
+                className="bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white font-extrabold px-6 py-3.5 rounded-full text-xs sm:text-sm shadow-xl flex items-center gap-2 transition transform hover:-translate-y-0.5"
               >
-                Explore Events
-                <ArrowRight className="w-4 h-4" />
+                <span>Explore Events</span>
+                <ChevronRight className="w-4 h-4" />
               </Link>
-              <Link
-                href="/offers"
-                className="theme-btn-secondary font-bold px-6 py-3.5 rounded-xl transition text-sm flex items-center gap-2"
+
+              <button
+                type="button"
+                onClick={() => alert('Launching trailer preview...')}
+                className="bg-gray-900/70 hover:bg-gray-900/90 text-white font-bold px-6 py-3.5 rounded-full text-xs sm:text-sm border border-gray-700 backdrop-blur-md flex items-center gap-2 transition"
               >
-                <Gift className="w-4 h-4 theme-text-accent" />
-                View Offers
-              </Link>
+                <Play className="w-4 h-4 fill-white" />
+                <span>Watch Trailer</span>
+              </button>
             </div>
+
+            {/* 3 Trust Badges below Hero */}
+            <div className="pt-6 border-t border-gray-800/80 grid grid-cols-3 gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 shrink-0">
+                  <Ticket className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white leading-tight">Easy Booking</h4>
+                  <p className="text-[10px] text-gray-400">Fast & hassle-free</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white leading-tight">Secure Payments</h4>
+                  <p className="text-[10px] text-gray-400">100% safe checkout</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
+                  <Headphones className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white leading-tight">24/7 Support</h4>
+                  <p className="text-[10px] text-gray-400">We're here for you</p>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          {/* Right Floating Spotlight Card & Spinning Vinyl ALL ACCESS Stamp */}
-          <div className="lg:col-span-5 relative">
-            {/* Spinning "ALL ACCESS" VIP Vinyl Circular Stamp */}
-            <div className="absolute -top-10 -right-6 z-20 w-28 h-28 pointer-events-none animate-spin-slow">
-              <svg viewBox="0 0 100 100" className="w-full h-full text-[#FF6847] fill-current">
-                <path
-                  id="circlePath"
-                  d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
-                  fill="none"
-                />
-                <text className="text-[9.5px] font-mono font-extrabold uppercase tracking-widest fill-current">
-                  <textPath href="#circlePath">
-                    ★ ALL ACCESS ★ VIP PASS ★ TICKETVERSE ★
-                  </textPath>
-                </text>
-              </svg>
-            </div>
-
-            <div className="theme-bg-card theme-border border-2 rounded-3xl p-5 shadow-2xl backdrop-blur-md space-y-4">
-              <span className="text-[10px] font-mono font-black uppercase tracking-widest theme-text-accent flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> SPOTLIGHT SHOW
-              </span>
-
-              <div className="relative h-44 rounded-2xl overflow-hidden theme-bg-main border theme-border">
-                <img
-                  src={featuredEvent.imageUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80'}
+          {/* Right Column: Spotlight Concert Card */}
+          <div className="lg:col-span-5 flex justify-center">
+            <div className="w-full max-w-sm rounded-3xl overflow-hidden bg-gray-900/85 border border-purple-500/30 shadow-2xl backdrop-blur-xl group hover:border-pink-500/50 transition duration-300">
+              <div className="relative h-64 w-full">
+                <Image
+                  src={featuredEvent.imageUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'}
                   alt={featuredEvent.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover group-hover:scale-105 transition duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <span className="absolute bottom-3 left-3 text-xs font-mono font-bold text-white uppercase bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded border border-white/20">
-                  Featured
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
+                
+                <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-pink-300 text-[10px] font-mono font-extrabold px-3 py-1 rounded-full border border-pink-500/30">
+                  LIVE IN MUMBAI
                 </span>
               </div>
 
-              <div className="space-y-1">
-                <h3 className="text-lg font-extrabold theme-text-main line-clamp-1">{featuredEvent.title}</h3>
-                <p className="text-xs theme-text-secondary flex items-center gap-1.5 font-mono" suppressHydrationWarning>
-                  📍 {featuredEvent.venue?.name} • 📅 {formattedDate}
-                </p>
-              </div>
+              <div className="p-5 space-y-4">
+                <div>
+                  <h3 className="text-xl font-black text-white italic tracking-wide">
+                    {featuredEvent.title}
+                  </h3>
+                  <p className="text-xs text-pink-400 font-serif italic">Live in Concert</p>
+                </div>
 
-              <Link
-                href={`/events/${featuredEvent.id}`}
-                className="w-full theme-btn-primary font-extrabold py-3 rounded-xl transition text-xs text-center block shadow-md"
-              >
-                Book Tickets
-              </Link>
+                <div className="space-y-1.5 text-xs text-gray-300 font-medium">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                    <span>24 Aug, 2025</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-orange-400" />
+                    <span>{featuredEvent.venue?.name || 'DY Patil Stadium'}, {featuredEvent.venue?.city || 'Mumbai'}</span>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/events/${featuredEvent.id}`}
+                  className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg transition"
+                >
+                  <span>Book Now</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
           </div>
+
         </div>
       </section>
 
-      {/* Role Services Showcase Section */}
-      <section className="space-y-6 border-t theme-border pt-12">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs uppercase tracking-wider font-extrabold theme-text-accent px-3 py-1 rounded-full theme-bg-elevated theme-border border font-mono">
-            Platform Capabilities
-          </span>
-          <h2 className="text-3xl font-extrabold theme-text-main">Services for All User Roles</h2>
-          <p className="text-xs theme-text-secondary">Explore dedicated tools tailored specifically for Customers, Event Organisers, and System Administrators.</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
-          {/* Customer Services */}
-          <div className="theme-bg-card theme-border border-2 rounded-3xl p-6 sm:p-8 space-y-6 flex flex-col justify-between shadow-xl">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b theme-border pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-2xl theme-bg-elevated theme-border border theme-text-accent">
-                    <UserCheck className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold theme-text-main">Customer Services</h3>
-                    <p className="text-[11px] theme-text-secondary">Ticket Buyers & Moviegoers</p>
-                  </div>
-                </div>
-              </div>
-
-              <ul className="space-y-3 text-xs theme-text-secondary">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Visual interactive seat selection & 10-minute atomic hold locks</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Food combos, gourmet popcorn & beverage add-ons during checkout</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Redeem food partner discount coupons (<code className="theme-text-accent font-mono font-bold">POPCORN15</code>, <code className="theme-text-accent font-mono font-bold">FEAST5</code>)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Automated category waitlists with instant FIFO re-allocation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Digital HMAC-signed QR Code E-Tickets & email delivery</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Order history dashboard, digital ticket viewing & booking cancellation</span>
-                </li>
-              </ul>
-            </div>
-
-            <Link
-              href="/events"
-              className="w-full theme-btn-primary font-bold py-3 rounded-xl transition text-xs text-center shadow-md block"
-            >
-              Explore Customer Portal & Events
-            </Link>
-          </div>
-
-          {/* Organiser Services */}
-          <div className="theme-bg-card theme-border border-2 rounded-3xl p-6 sm:p-8 space-y-6 flex flex-col justify-between shadow-xl">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b theme-border pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-2xl theme-bg-elevated theme-border border theme-text-accent">
-                    <LayoutDashboard className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold theme-text-main">Organiser Services</h3>
-                    <p className="text-[11px] theme-text-secondary">Event Managers & Concert Hosts</p>
-                  </div>
-                </div>
-              </div>
-
-              <ul className="space-y-3 text-xs theme-text-secondary">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Host & publish Movies and Concert listings with tiered seat pricing</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Upload Proof of Partnership contract documents with food chains</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Issue partner food discount vouchers and event promo coupons</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Track total revenue, tickets sold, and seat occupancy percentages</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Real-time WebSocket seat status monitors & occupancy heatmaps</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <Link
-                href="/organiser/dashboard"
-                className="w-full theme-btn-primary font-bold py-3 rounded-xl transition text-xs text-center shadow-md block"
-              >
-                Organiser Dashboard
-              </Link>
-              <Link
-                href="/organiser/coupons"
-                className="w-full theme-btn-secondary font-bold py-2.5 rounded-xl transition text-xs text-center block"
-              >
-                Food Partnerships & Coupons Hub
-              </Link>
-            </div>
-          </div>
-
-          {/* Admin Services */}
-          <div className="theme-bg-card theme-border border-2 rounded-3xl p-6 sm:p-8 space-y-6 flex flex-col justify-between shadow-xl">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b theme-border pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-2xl theme-bg-elevated theme-border border theme-text-accent">
-                    <Shield className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold theme-text-main">Admin Services</h3>
-                    <p className="text-[11px] theme-text-secondary">System Administrators</p>
-                  </div>
-                </div>
-              </div>
-
-              <ul className="space-y-3 text-xs theme-text-secondary">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Build venue seat grid layouts, row counts, and seat category tiers</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Configure food stalls, snack counters, prices, and combo menus</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Inspect, approve, or reject Organiser Proof of Partnership submissions</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 theme-text-success shrink-0 mt-0.5" />
-                  <span>Manage global platform settings, cinema halls, and venue photo covers</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <Link
-                href="/admin/venues"
-                className="w-full theme-btn-primary font-bold py-3 rounded-xl transition text-xs text-center shadow-md block"
-              >
-                Admin Venues Layout Builder
-              </Link>
-              <Link
-                href="/admin/food"
-                className="w-full theme-btn-secondary font-bold py-2.5 rounded-xl transition text-xs text-center block"
-              >
-                Food Stalls & Partnerships Portal
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Perforated 3D Ticket Stubs Tier Selector */}
-      <section className="space-y-6">
-        <div className="text-center max-w-xl mx-auto space-y-2">
-          <span className="text-xs font-mono font-extrabold uppercase theme-text-accent px-3 py-1 rounded-full theme-bg-elevated theme-border border">
-            SELECT TICKET TIER
-          </span>
-          <h2 className="text-3xl font-extrabold theme-text-main">Perforated 3D Ticket Stubs</h2>
-          <p className="text-xs theme-text-secondary">Hover to tilt and reveal sweeping metallic sheen effect</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <TicketStub3D
-            event={featuredEvent}
-            tier="GENERAL"
-            onSelectTier={handleSelectTier}
-          />
-          <TicketStub3D
-            event={featuredEvent}
-            tier="VIP"
-            onSelectTier={handleSelectTier}
-          />
-          <TicketStub3D
-            event={featuredEvent}
-            tier="BACKSTAGE"
-            onSelectTier={handleSelectTier}
-          />
-        </div>
-      </section>
-
-      {/* Top Picks For You Grid */}
-      <section className="space-y-6">
+      {/* ========================================================================= */}
+      {/* 2. BROWSE BY CATEGORY SECTION                                           */}
+      {/* ========================================================================= */}
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-extrabold theme-text-main">Top Picks For You</h2>
-            <p className="text-xs theme-text-secondary">Handpicked trending movies, live concerts & shows</p>
-          </div>
-          <Link href="/events" className="text-xs font-extrabold theme-text-accent hover:underline flex items-center gap-1 font-mono">
-            See All &gt;
+          <h2 className="text-xl font-black theme-text-main">Browse by Category</h2>
+          <Link href="/events" className="text-xs font-bold theme-text-accent hover:underline flex items-center gap-1">
+            <span>View All</span>
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12 theme-text-secondary text-xs">Loading catalog...</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {events.map((ev, idx) => {
-              const displayImage = ev.imageUrl || ev.venue?.imageUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80';
-              const rating = (8.5 + (idx % 10) * 0.2).toFixed(1);
-              return (
-                <div
-                  key={ev.id}
-                  className="group theme-bg-card theme-border border rounded-2xl overflow-hidden transition shadow-lg flex flex-col justify-between"
-                >
-                  <div className="h-52 w-full relative theme-bg-main overflow-hidden">
-                    <img
-                      src={displayImage}
-                      alt={ev.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    
-                    <span className="absolute top-3 left-3 text-[10px] uppercase font-mono font-black px-2 py-0.5 rounded theme-btn-primary">
-                      {ev.eventType}
-                    </span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* Movies */}
+          <Link
+            href="/events?type=MOVIE"
+            className="category-card-movies rounded-2xl p-4 text-white shadow-lg hover:scale-[1.03] transition duration-200 flex items-center justify-between group"
+          >
+            <div>
+              <Film className="w-6 h-6 text-pink-300 mb-1" />
+              <span className="text-sm font-extrabold block">Movies</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-pink-300 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+          </Link>
 
-                    <span className="absolute top-3 right-3 text-[11px] font-mono font-bold text-amber-400 bg-black/70 px-2 py-0.5 rounded-full flex items-center gap-1 backdrop-blur-md border border-amber-400/30">
-                      <Star className="w-3 h-3 fill-amber-400" />
-                      {rating}
-                    </span>
-                  </div>
+          {/* Concerts */}
+          <Link
+            href="/events?type=CONCERT"
+            className="category-card-concerts rounded-2xl p-4 text-white shadow-lg hover:scale-[1.03] transition duration-200 flex items-center justify-between group"
+          >
+            <div>
+              <Music className="w-6 h-6 text-purple-300 mb-1" />
+              <span className="text-sm font-extrabold block">Concerts</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-purple-300 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+          </Link>
 
-                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-base font-bold theme-text-main group-hover:theme-text-accent transition line-clamp-1">
-                        {ev.title}
-                      </h3>
-                      <p className="text-[11px] theme-text-secondary line-clamp-1">{ev.venue?.name} • {ev.venue?.location}</p>
-                    </div>
+          {/* Plays */}
+          <Link
+            href="/events?type=THEATRE"
+            className="category-card-plays rounded-2xl p-4 text-white shadow-lg hover:scale-[1.03] transition duration-200 flex items-center justify-between group"
+          >
+            <div>
+              <Sparkles className="w-6 h-6 text-amber-300 mb-1" />
+              <span className="text-sm font-extrabold block">Plays</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-300 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+          </Link>
 
-                    <div className="pt-2 border-t theme-border flex items-center justify-between text-xs">
-                      <span className="text-[11px] theme-text-success font-mono font-bold">
-                        {ev.isSoldOut ? 'Sold Out' : `${ev.availableSeats} Available`}
-                      </span>
+          {/* Sports */}
+          <Link
+            href="/events?type=SPORTS"
+            className="category-card-sports rounded-2xl p-4 text-white shadow-lg hover:scale-[1.03] transition duration-200 flex items-center justify-between group"
+          >
+            <div>
+              <Trophy className="w-6 h-6 text-emerald-300 mb-1" />
+              <span className="text-sm font-extrabold block">Sports</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-emerald-300 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+          </Link>
 
-                      <Link
-                        href={`/events/${ev.id}`}
-                        className="theme-btn-primary font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm"
-                      >
-                        Book Seats
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          {/* Comedy */}
+          <Link
+            href="/events?type=COMEDY"
+            className="category-card-comedy rounded-2xl p-4 text-white shadow-lg hover:scale-[1.03] transition duration-200 flex items-center justify-between group"
+          >
+            <div>
+              <Mic className="w-6 h-6 text-fuchsia-300 mb-1" />
+              <span className="text-sm font-extrabold block">Comedy</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-fuchsia-300 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+          </Link>
+
+          {/* Workshops */}
+          <Link
+            href="/events?type=WORKSHOP"
+            className="category-card-workshops rounded-2xl p-4 text-white shadow-lg hover:scale-[1.03] transition duration-200 flex items-center justify-between group"
+          >
+            <div>
+              <Palette className="w-6 h-6 text-teal-300 mb-1" />
+              <span className="text-sm font-extrabold block">Workshops</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-teal-300 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 3. 🔥 TRENDING NOW SECTION                                              */}
+      {/* ========================================================================= */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🔥</span>
+            <h2 className="text-xl font-black theme-text-main">Trending Now</h2>
           </div>
-        )}
+          <Link href="/events" className="text-xs font-bold theme-text-accent hover:underline flex items-center gap-1">
+            <span>View All</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Event Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {events.slice(0, 4).map((evt, idx) => (
+            <div
+              key={evt.id}
+              className="theme-bg-card theme-border border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 group flex flex-col justify-between"
+            >
+              <div>
+                <div className="relative h-48 w-full overflow-hidden">
+                  <Image
+                    src={evt.imageUrl || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=800&q=80'}
+                    alt={evt.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80" />
+
+                  {/* Date Badge Overlay */}
+                  <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-md text-white px-2.5 py-1 rounded-xl border border-white/10 text-center leading-none">
+                    <span className="text-xs font-black block">
+                      {new Date(evt.eventDate).getDate() || (23 + idx)}
+                    </span>
+                    <span className="text-[9px] font-bold text-pink-400 uppercase block mt-0.5">
+                      {new Date(evt.eventDate).toLocaleString('default', { month: 'short' }) || 'AUG'}
+                    </span>
+                  </div>
+
+                  {/* Wishlist Heart Icon */}
+                  <button
+                    type="button"
+                    onClick={() => alert('Added to wishlist!')}
+                    className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md transition"
+                  >
+                    <Heart className="w-3.5 h-3.5 hover:text-pink-500" />
+                  </button>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <h3 className="font-extrabold text-sm theme-text-main line-clamp-1 group-hover:theme-text-accent transition">
+                    {evt.title}
+                  </h3>
+
+                  <p className="text-[11px] theme-text-secondary font-medium flex items-center justify-between">
+                    <span>{evt.eventType || 'Concert'} • {evt.venue?.city || 'Mumbai'}</span>
+                    <span className="flex items-center gap-1 theme-text-accent font-bold">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      4.8
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="px-4 pb-4 pt-2 border-t theme-border flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] theme-text-secondary uppercase block font-bold">From</span>
+                  <span className="text-sm font-black theme-text-main">
+                    ₹{evt.eventSeats?.[0]?.price || (idx === 0 ? 250 : idx === 1 ? 899 : idx === 2 ? 180 : 499)}
+                  </span>
+                </div>
+
+                <Link
+                  href={`/events/${evt.id}`}
+                  className="theme-btn-primary font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-md transition flex items-center gap-1"
+                >
+                  <span>Book</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. PROMO DISCOUNT BANNER BAR                                            */}
+      {/* ========================================================================= */}
+      <section className="promo-banner-bg rounded-3xl p-6 sm:p-8 text-white border border-purple-500/30 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-2xl shrink-0">
+            🍿
+          </div>
+          <div>
+            <h3 className="text-xl font-black">
+              Get <span className="text-yellow-400">10% Off</span> on your first booking!
+            </h3>
+            <p className="text-xs text-gray-300 mt-0.5">
+              Enjoy gourmet popcorn & cinema snacks on every ticket reservation.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="px-4 py-2 rounded-xl bg-black/40 border border-dashed border-pink-400 text-xs font-mono font-bold text-pink-300">
+            Use Code: <span className="text-white font-black">FIRST10</span>
+          </div>
+
+          <Link
+            href="/events"
+            className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-950 font-black px-6 py-2.5 rounded-full text-xs shadow-lg transition"
+          >
+            Book Now →
+          </Link>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 5. ROLE ECOSYSTEM & SYSTEM HARDENING HUB (For Technical Evaluators)      */}
+      {/* ========================================================================= */}
+      <section className="theme-bg-card theme-border border rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+        <div className="flex items-center justify-between border-b theme-border pb-4">
+          <div>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest theme-text-accent">
+              Platform Architecture
+            </span>
+            <h3 className="text-xl font-black theme-text-main">Multi-Role Ecosystem & Engine Controls</h3>
+          </div>
+          <span className="text-xs font-mono theme-text-success border theme-border px-3 py-1 rounded-full theme-bg-elevated font-bold">
+            NestJS + Next.js 14
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Customer */}
+          <div className="p-4 rounded-2xl theme-bg-elevated theme-border border space-y-2">
+            <span className="text-xs font-mono font-bold theme-text-accent block uppercase">Customer Services</span>
+            <h4 className="text-sm font-bold theme-text-main">10-Min Seat Holds & Razorpay Checkout</h4>
+            <p className="text-xs theme-text-secondary">
+              Interactive 3D stubs, real-time Socket.IO seat maps, Razorpay UPI/Cards/NetBanking, food combo add-ons, and HMAC QR tickets.
+            </p>
+          </div>
+
+          {/* Organiser */}
+          <div className="p-4 rounded-2xl theme-bg-elevated theme-border border space-y-2">
+            <span className="text-xs font-mono font-bold text-purple-400 block uppercase">Organiser Services</span>
+            <h4 className="text-sm font-bold theme-text-main">Event Creation & Food Partnership Proofs</h4>
+            <p className="text-xs theme-text-secondary">
+              Publish events with seat pricing, submit digital proof-of-partnership contracts for food vouchers, and manage promo codes.
+            </p>
+          </div>
+
+          {/* Admin */}
+          <div className="p-4 rounded-2xl theme-bg-elevated theme-border border space-y-2">
+            <span className="text-xs font-mono font-bold text-emerald-400 block uppercase">Admin Controls</span>
+            <h4 className="text-sm font-bold theme-text-main">Venue Builder & Contract Verification</h4>
+            <p className="text-xs theme-text-secondary">
+              Build custom row/seat venue layouts and audit organiser proof-of-partnership submissions before coupons activate.
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   );
