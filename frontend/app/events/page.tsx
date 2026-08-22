@@ -2,12 +2,13 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { eventService } from '../../services/api';
-import { Search, Film, Music, Sparkles, Trophy, Mic, Palette, MapPin, Calendar, ChevronRight, Star } from 'lucide-react';
+import { Search, Film, Music, Sparkles, Trophy, Mic, Palette, MapPin, Calendar, ChevronRight, X } from 'lucide-react';
 import Image from 'next/image';
 
 function EventsContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const typeParam = searchParams.get('type') || '';
   const searchParam = searchParams.get('search') || '';
@@ -22,10 +23,13 @@ function EventsContent() {
     setSearchQuery(searchParams.get('search') || '');
   }, [searchParams]);
 
-  const fetchEvents = () => {
+  const fetchEvents = (type?: string, search?: string) => {
     setLoading(true);
+    const activeType = type !== undefined ? type : typeFilter;
+    const activeSearch = search !== undefined ? search : searchQuery;
+
     eventService
-      .getAll(typeFilter || undefined, searchQuery || undefined)
+      .getAll(activeType || undefined, activeSearch.trim() || undefined)
       .then((res) => setEvents(res.data))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -35,9 +39,28 @@ function EventsContent() {
     fetchEvents();
   }, [typeFilter, searchQuery]);
 
+  const handleCategorySelect = (type: string) => {
+    setTypeFilter(type);
+    setSearchQuery('');
+    if (type) {
+      router.push(`/events?type=${type}`);
+    } else {
+      router.push('/events');
+    }
+  };
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchEvents();
+    if (searchQuery.trim()) {
+      router.push(`/events?${typeFilter ? `type=${typeFilter}&` : ''}search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push(typeFilter ? `/events?type=${typeFilter}` : '/events');
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    router.push(typeFilter ? `/events?type=${typeFilter}` : '/events');
   };
 
   return (
@@ -51,7 +74,7 @@ function EventsContent() {
       <div className="flex flex-col lg:flex-row items-center justify-between gap-4 theme-bg-card theme-border border p-4 rounded-2xl">
         <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0">
           <button
-            onClick={() => setTypeFilter('')}
+            onClick={() => handleCategorySelect('')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
               typeFilter === '' ? 'theme-btn-primary' : 'theme-btn-secondary'
             }`}
@@ -60,7 +83,7 @@ function EventsContent() {
           </button>
 
           <button
-            onClick={() => setTypeFilter('MOVIE')}
+            onClick={() => handleCategorySelect('MOVIE')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               typeFilter === 'MOVIE' ? 'theme-btn-primary' : 'theme-btn-secondary'
             }`}
@@ -70,7 +93,7 @@ function EventsContent() {
           </button>
 
           <button
-            onClick={() => setTypeFilter('CONCERT')}
+            onClick={() => handleCategorySelect('CONCERT')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               typeFilter === 'CONCERT' ? 'theme-btn-primary' : 'theme-btn-secondary'
             }`}
@@ -80,7 +103,7 @@ function EventsContent() {
           </button>
 
           <button
-            onClick={() => setTypeFilter('THEATRE')}
+            onClick={() => handleCategorySelect('THEATRE')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               typeFilter === 'THEATRE' ? 'theme-btn-primary' : 'theme-btn-secondary'
             }`}
@@ -90,7 +113,7 @@ function EventsContent() {
           </button>
 
           <button
-            onClick={() => setTypeFilter('SPORTS')}
+            onClick={() => handleCategorySelect('SPORTS')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               typeFilter === 'SPORTS' ? 'theme-btn-primary' : 'theme-btn-secondary'
             }`}
@@ -100,7 +123,7 @@ function EventsContent() {
           </button>
 
           <button
-            onClick={() => setTypeFilter('COMEDY')}
+            onClick={() => handleCategorySelect('COMEDY')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               typeFilter === 'COMEDY' ? 'theme-btn-primary' : 'theme-btn-secondary'
             }`}
@@ -110,7 +133,7 @@ function EventsContent() {
           </button>
 
           <button
-            onClick={() => setTypeFilter('WORKSHOP')}
+            onClick={() => handleCategorySelect('WORKSHOP')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
               typeFilter === 'WORKSHOP' ? 'theme-btn-primary' : 'theme-btn-secondary'
             }`}
@@ -120,15 +143,24 @@ function EventsContent() {
           </button>
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="relative w-full lg:w-72">
+        <form onSubmit={handleSearchSubmit} className="relative w-full lg:w-72 flex items-center">
           <input
             type="text"
             placeholder="Search titles or venues..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full theme-bg-input theme-border border rounded-xl px-4 py-2 text-xs theme-text-main focus:outline-none pr-10"
+            className="w-full theme-bg-input theme-border border rounded-xl px-4 py-2 text-xs theme-text-main focus:outline-none pr-14"
           />
-          <button type="submit" className="absolute right-3 top-2.5 theme-text-secondary hover:theme-text-accent">
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-8 theme-text-secondary hover:theme-text-accent p-1"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          ) : null}
+          <button type="submit" className="absolute right-3 theme-text-secondary hover:theme-text-accent">
             <Search className="w-4 h-4" />
           </button>
         </form>
@@ -138,8 +170,18 @@ function EventsContent() {
       {loading ? (
         <div className="text-center py-16 theme-text-secondary text-xs">Loading catalog...</div>
       ) : events.length === 0 ? (
-        <div className="text-center py-16 theme-text-secondary theme-bg-card theme-border border rounded-2xl text-xs">
-          No matching events found. Try adjusting your filters.
+        <div className="text-center py-16 theme-text-secondary theme-bg-card theme-border border rounded-2xl text-xs space-y-3">
+          <p>No matching events found for your search query or filter.</p>
+          <button
+            onClick={() => {
+              setTypeFilter('');
+              setSearchQuery('');
+              router.push('/events');
+            }}
+            className="theme-btn-primary px-4 py-2 rounded-xl text-xs font-bold transition"
+          >
+            Clear Filters & Show All Events
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

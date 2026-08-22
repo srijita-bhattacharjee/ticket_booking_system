@@ -26,6 +26,8 @@ export class EventsService {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
+        { venue: { name: { contains: search, mode: 'insensitive' } } },
+        { venue: { location: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
