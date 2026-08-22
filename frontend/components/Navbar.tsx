@@ -60,8 +60,8 @@ export default function Navbar() {
           </Link>
 
           <Link href="/bookings" className="theme-text-secondary hover:theme-text-main transition text-xs font-semibold flex items-center gap-1.5">
-            <ShoppingBag className="w-4 h-4 theme-text-accent" />
-            <span className="hidden sm:inline">Cart</span>
+            <Ticket className="w-4 h-4 theme-text-accent" />
+            <span className="hidden sm:inline">My Bookings</span>
           </Link>
 
           {/* Theme Switcher Toggle Button */}
