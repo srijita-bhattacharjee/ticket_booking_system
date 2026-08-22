@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { DatabaseModule } from './database/database.module';
 import { RedisModule } from './common/redis/redis.module';
 import { AuthModule } from './auth/auth.module';
@@ -11,6 +13,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { FoodModule } from './food/food.module';
 import { SeatsGateway } from './seats/seats.gateway';
 
 @Module({
@@ -19,6 +22,13 @@ import { SeatsGateway } from './seats/seats.gateway';
       isGlobal: true,
       envFilePath: ['.env', '../.env'],
     }),
+    // Rate Limiting Guard: Default 60 requests per 60 seconds per IP
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 60,
+      },
+    ]),
     DatabaseModule,
     RedisModule,
     AuthModule,
@@ -30,7 +40,14 @@ import { SeatsGateway } from './seats/seats.gateway';
     TicketsModule,
     NotificationsModule,
     AnalyticsModule,
+    FoodModule,
   ],
-  providers: [SeatsGateway],
+  providers: [
+    SeatsGateway,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

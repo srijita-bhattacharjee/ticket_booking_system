@@ -71,6 +71,12 @@ enum TicketStatus {
   CANCELLED
 }
 
+enum PartnershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           String          @id @default(uuid())
   name         String
@@ -84,6 +90,7 @@ model User {
   holds        Hold[]
   bookings     Booking[]
   waitlists    WaitlistEntry[]
+  partnerships PartnershipProof[]
 
   @@map("users")
 }
@@ -92,12 +99,14 @@ model Venue {
   id          String      @id @default(uuid())
   name        String
   location    String
+  imageUrl    String?     @map("image_url")
   createdById String      @map("created_by")
   createdAt   DateTime    @default(now()) @map("created_at")
 
   createdBy   User        @relation(fields: [createdById], references: [id], onDelete: Cascade)
   seats       VenueSeat[]
   events      Event[]
+  foodStalls  FoodStall[]
 
   @@map("venues")
 }
@@ -125,6 +134,7 @@ model Event {
   eventType   EventType   @default(MOVIE) @map("event_type")
   eventDate   DateTime    @map("event_date")
   startTime   String      @map("start_time")
+  imageUrl    String?     @map("image_url")
   status      EventStatus @default(ON_SALE)
   createdAt   DateTime    @default(now()) @map("created_at")
 
@@ -134,6 +144,7 @@ model Event {
   holds       Hold[]
   bookings    Booking[]
   waitlists   WaitlistEntry[]
+  coupons     FoodCoupon[]
 
   @@map("events")
 }
@@ -189,6 +200,8 @@ model Booking {
   eventId          String        @map("event_id")
   bookingReference String        @unique @map("booking_reference")
   totalAmount      Float         @map("total_amount")
+  discountAmount   Float         @default(0) @map("discount_amount")
+  couponCode       String?       @map("coupon_code")
   status           BookingStatus @default(CONFIRMED)
   idempotencyKey   String?       @unique @map("idempotency_key")
   createdAt        DateTime      @default(now()) @map("created_at")
@@ -198,6 +211,7 @@ model Booking {
   event            Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
   seats            BookingSeat[]
   tickets          Ticket[]
+  addons           BookingAddon[]
 
   @@map("bookings")
 }
@@ -255,4 +269,91 @@ model Ticket {
   booking     Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@map("tickets")
+}
+
+model FoodStall {
+  id          String     @id @default(uuid())
+  venueId     String?    @map("venue_id")
+  name        String
+  description String
+  location    String
+  imageUrl    String?    @map("image_url")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  venue          Venue?             @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  items          MenuItem[]
+  partnerships   PartnershipProof[]
+  coupons        FoodCoupon[]
+
+  @@map("food_stalls")
+}
+
+model MenuItem {
+  id          String     @id @default(uuid())
+  stallId     String     @map("stall_id")
+  name        String
+  description String
+  category    String
+  price       Float
+  imageUrl    String?    @map("image_url")
+  isAvailable Boolean    @default(true) @map("is_available")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  stall         FoodStall      @relation(fields: [stallId], references: [id], onDelete: Cascade)
+  bookingAddons BookingAddon[]
+
+  @@map("menu_items")
+}
+
+model PartnershipProof {
+  id            String            @id @default(uuid())
+  organiserId   String            @map("organiser_id")
+  foodStallId   String            @map("food_stall_id")
+  partnerName   String            @map("partner_name")
+  documentUrl   String            @map("document_url")
+  agreementRef  String            @map("agreement_ref")
+  status        PartnershipStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  organiser     User              @relation(fields: [organiserId], references: [id], onDelete: Cascade)
+  foodStall     FoodStall         @relation(fields: [foodStallId], references: [id], onDelete: Cascade)
+  coupons       FoodCoupon[]
+
+  @@map("partnership_proofs")
+}
+
+model FoodCoupon {
+  id            String            @id @default(uuid())
+  eventId       String?           @map("event_id")
+  partnershipId String            @map("partnership_id")
+  foodStallId   String            @map("food_stall_id")
+  code          String            @unique
+  title         String
+  description   String
+  discountPercent Float?          @map("discount_percent")
+  discountAmount  Float?          @map("discount_amount")
+  minSpend      Float             @default(0) @map("min_spend")
+  imageUrl      String?           @map("image_url")
+  isActive      Boolean           @default(true) @map("is_active")
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  event         Event?            @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  partnership   PartnershipProof  @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
+  foodStall     FoodStall         @relation(fields: [foodStallId], references: [id], onDelete: Cascade)
+
+  @@map("food_coupons")
+}
+
+model BookingAddon {
+  id          String   @id @default(uuid())
+  bookingId   String   @map("booking_id")
+  menuItemId  String   @map("menu_item_id")
+  quantity    Int      @default(1)
+  price       Float
+
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@map("booking_addons")
 }

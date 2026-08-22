@@ -18,12 +18,17 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       port,
       maxRetriesPerRequest: null,
       lazyConnect: true,
+      retryStrategy: () => null, // Don't retry infinitely if Redis is offline
+    });
+
+    this.client.on('error', (err) => {
+      // Suppress unhandled EventEmitter crash logs when Redis server is offline
     });
 
     this.client.connect().then(() => {
       this.logger.log(`Connected to Redis at ${host}:${port}`);
     }).catch(err => {
-      this.logger.warn(`Redis connection delayed: ${err.message}. Operating with fallback mode.`);
+      this.logger.warn(`Redis server offline (${err.message}). Database row-locking will handle concurrency.`);
     });
   }
 

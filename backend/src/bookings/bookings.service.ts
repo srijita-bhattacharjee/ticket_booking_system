@@ -12,9 +12,18 @@ import { TicketsService } from '../tickets/tickets.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { HoldStatus, SeatStatus, BookingStatus } from '@prisma/client';
 
+export interface CreateBookingAddonDto {
+  menuItemId: string;
+  quantity: number;
+  price: number;
+}
+
 export interface CreateBookingDto {
   holdId: string;
   idempotencyKey?: string;
+  addons?: CreateBookingAddonDto[];
+  couponCode?: string;
+  discountAmount?: number;
 }
 
 @Injectable()
@@ -62,7 +71,10 @@ export class BookingsService {
     }
 
     const eventSeatIds = hold.seats.map((s) => s.eventSeatId);
-    const totalAmount = hold.seats.reduce((sum, s) => sum + s.eventSeat.price, 0);
+    const seatsTotal = hold.seats.reduce((sum, s) => sum + s.eventSeat.price, 0);
+    const addonsTotal = (dto.addons || []).reduce((sum, a) => sum + a.price * a.quantity, 0);
+    const discount = dto.discountAmount || 0;
+    const finalTotal = Math.max(0, seatsTotal + addonsTotal - discount);
     const bookingRef = 'BK-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
     // 3. Database Transaction to convert HELD seats to BOOKED
@@ -73,7 +85,9 @@ export class BookingsService {
           userId,
           eventId: hold.eventId,
           bookingReference: bookingRef,
-          totalAmount,
+          totalAmount: finalTotal,
+          discountAmount: discount,
+          couponCode: dto.couponCode || null,
           status: BookingStatus.CONFIRMED,
           idempotencyKey: dto.idempotencyKey || null,
           seats: {
@@ -81,12 +95,28 @@ export class BookingsService {
               eventSeatId: id,
             })),
           },
+          ...(dto.addons && dto.addons.length > 0
+            ? {
+                addons: {
+                  create: dto.addons.map((a) => ({
+                    menuItemId: a.menuItemId,
+                    quantity: a.quantity,
+                    price: a.price,
+                  })),
+                },
+              }
+            : {}),
         },
         include: {
           event: { include: { venue: true } },
           seats: {
             include: {
               eventSeat: { include: { venueSeat: true } },
+            },
+          },
+          addons: {
+            include: {
+              menuItem: { include: { stall: true } },
             },
           },
         },
@@ -155,6 +185,11 @@ export class BookingsService {
             eventSeat: { include: { venueSeat: true } },
           },
         },
+        addons: {
+          include: {
+            menuItem: { include: { stall: true } },
+          },
+        },
         tickets: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -169,6 +204,11 @@ export class BookingsService {
         seats: {
           include: {
             eventSeat: { include: { venueSeat: true } },
+          },
+        },
+        addons: {
+          include: {
+            menuItem: { include: { stall: true } },
           },
         },
         tickets: true,

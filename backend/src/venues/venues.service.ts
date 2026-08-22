@@ -5,6 +5,7 @@ import { SeatCategory } from '@prisma/client';
 export interface CreateVenueDto {
   name: string;
   location: string;
+  imageUrl?: string;
   rows: number;
   seatsPerRow: number;
   premiumRowsCount?: number;
@@ -47,6 +48,7 @@ export class VenuesService {
       data: {
         name: dto.name,
         location: dto.location,
+        imageUrl: dto.imageUrl || null,
         createdById: adminId,
       },
     });
