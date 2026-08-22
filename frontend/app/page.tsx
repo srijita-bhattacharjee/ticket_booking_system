@@ -401,46 +401,43 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. ROLE ECOSYSTEM & SYSTEM HARDENING HUB (For Technical Evaluators)      */}
+      {/* 5. PLATFORM FEATURES OVERVIEW                                           */}
       {/* ========================================================================= */}
       <section className="theme-bg-card theme-border border rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
         <div className="flex items-center justify-between border-b theme-border pb-4">
           <div>
             <span className="text-[10px] font-mono font-bold uppercase tracking-widest theme-text-accent">
-              Platform Architecture
+              Platform Features
             </span>
-            <h3 className="text-xl font-black theme-text-main">Multi-Role Ecosystem & Engine Controls</h3>
+            <h3 className="text-xl font-black theme-text-main">Designed for Unforgettable Live Experiences</h3>
           </div>
-          <span className="text-xs font-mono theme-text-success border theme-border px-3 py-1 rounded-full theme-bg-elevated font-bold">
-            NestJS + Next.js 14
-          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Customer */}
           <div className="p-4 rounded-2xl theme-bg-elevated theme-border border space-y-2">
-            <span className="text-xs font-mono font-bold theme-text-accent block uppercase">Customer Services</span>
-            <h4 className="text-sm font-bold theme-text-main">10-Min Seat Holds & Razorpay Checkout</h4>
+            <span className="text-xs font-mono font-bold theme-text-accent block uppercase">Customer Experience</span>
+            <h4 className="text-sm font-bold theme-text-main">Instant Seat Reservations & Checkout</h4>
             <p className="text-xs theme-text-secondary">
-              Interactive 3D stubs, real-time Socket.IO seat maps, Razorpay UPI/Cards/NetBanking, food combo add-ons, and HMAC QR tickets.
+              Interactive seat selection maps, instant 10-minute hold locks, gourmet food combo add-ons, and digital QR tickets.
             </p>
           </div>
 
           {/* Organiser */}
           <div className="p-4 rounded-2xl theme-bg-elevated theme-border border space-y-2">
-            <span className="text-xs font-mono font-bold text-purple-400 block uppercase">Organiser Services</span>
-            <h4 className="text-sm font-bold theme-text-main">Event Creation & Food Partnership Proofs</h4>
+            <span className="text-xs font-mono font-bold text-purple-400 block uppercase">Organiser Portal</span>
+            <h4 className="text-sm font-bold theme-text-main">Event Management & Partner Offers</h4>
             <p className="text-xs theme-text-secondary">
-              Publish events with seat pricing, submit digital proof-of-partnership contracts for food vouchers, and manage promo codes.
+              Publish live event listings, tiered seat pricing, food stall combo offers, and real-time sales analytics.
             </p>
           </div>
 
           {/* Admin */}
           <div className="p-4 rounded-2xl theme-bg-elevated theme-border border space-y-2">
-            <span className="text-xs font-mono font-bold text-emerald-400 block uppercase">Admin Controls</span>
-            <h4 className="text-sm font-bold theme-text-main">Venue Builder & Contract Verification</h4>
+            <span className="text-xs font-mono font-bold text-emerald-400 block uppercase">Admin Operations</span>
+            <h4 className="text-sm font-bold theme-text-main">Venue Builder & Verification</h4>
             <p className="text-xs theme-text-secondary">
-              Build custom row/seat venue layouts and audit organiser proof-of-partnership submissions before coupons activate.
+              Configure venue row/seat layouts, capacity controls, food partner verifications, and platform governance.
             </p>
           </div>
         </div>
