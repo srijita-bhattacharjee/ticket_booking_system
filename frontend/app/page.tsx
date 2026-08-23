@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   Lock,
   ChevronRight,
+  ChevronLeft,
   Calendar,
   MapPin,
   Trophy,
@@ -31,6 +32,7 @@ export default function HomePage() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState<number>(0);
   const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
   const [wishlistPending, setWishlistPending] = useState<Set<string>>(new Set());
 
@@ -38,6 +40,15 @@ export default function HomePage() {
     fetchEvents();
     fetchWishlistedIds();
   }, []);
+
+  // Auto-rotate featured live events every 3.5 seconds
+  useEffect(() => {
+    if (!events || events.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrentFeaturedIndex((prev) => (prev + 1) % events.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [events]);
 
   const fetchEvents = async () => {
     try {
@@ -56,13 +67,12 @@ export default function HomePage() {
       const res = await wishlistService.getIds();
       setWishlistedIds(new Set(res.data));
     } catch {
-      // Not logged in — silent fail, heart buttons still work (redirect to login)
+      // Not logged in — silent fail
     }
   };
 
   const handleWishlistToggle = async (eventId: string) => {
     if (wishlistPending.has(eventId)) return;
-    // Optimistic update
     setWishlistPending((p) => new Set(p).add(eventId));
     setWishlistedIds((prev) => {
       const next = new Set(prev);
@@ -72,7 +82,6 @@ export default function HomePage() {
     try {
       await wishlistService.toggle(eventId);
     } catch (err: any) {
-      // Revert on failure (e.g. 401 not logged in)
       setWishlistedIds((prev) => {
         const next = new Set(prev);
         next.has(eventId) ? next.delete(eventId) : next.add(eventId);
@@ -90,14 +99,26 @@ export default function HomePage() {
     ? events
     : events.filter(e => e.eventType === selectedCategory);
 
-  const featuredEvent = events[0] || {
-    id: 'featured-1',
-    title: 'Arijit Singh Live in Concert',
-    eventType: 'CONCERT',
-    eventDate: new Date('2025-08-24'),
-    startTime: '19:00',
-    venue: { name: 'DY Patil Stadium', city: 'Mumbai' },
-    imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+  const activeFeatured = events.length > 0
+    ? events[currentFeaturedIndex % events.length]
+    : {
+        id: 'featured-1',
+        title: 'Arijit Singh Live in Concert',
+        eventType: 'CONCERT',
+        eventDate: new Date('2025-08-24'),
+        startTime: '19:00',
+        venue: { name: 'DY Patil Stadium', city: 'Mumbai', location: 'Mumbai' },
+        imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+      };
+
+  const handlePrevFeatured = () => {
+    if (events.length === 0) return;
+    setCurrentFeaturedIndex((prev) => (prev - 1 + events.length) % events.length);
+  };
+
+  const handleNextFeatured = () => {
+    if (events.length === 0) return;
+    setCurrentFeaturedIndex((prev) => (prev + 1) % events.length);
   };
 
   return (
@@ -172,49 +193,92 @@ export default function HomePage() {
 
           </div>
 
-          {/* Right Column: Spotlight Concert Card */}
+          {/* Right Column: Auto-Rotating Live Events Spotlight Card */}
           <div className="lg:col-span-5 flex justify-center">
-            <div className="w-full max-w-sm rounded-3xl overflow-hidden bg-gray-900/85 border border-purple-500/30 shadow-2xl backdrop-blur-xl group hover:border-pink-500/50 transition duration-300">
-              <div className="relative h-64 w-full">
+            <div key={activeFeatured.id} className="w-full max-w-sm rounded-3xl overflow-hidden bg-gray-900/85 border border-purple-500/30 shadow-2xl backdrop-blur-xl group hover:border-pink-500/50 transition-all duration-500 transform">
+              <div className="relative h-64 w-full overflow-hidden">
                 <Image
-                  src={featuredEvent.imageUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'}
-                  alt={featuredEvent.title}
+                  src={activeFeatured.imageUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'}
+                  alt={activeFeatured.title}
                   fill
                   className="object-cover group-hover:scale-105 transition duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
                 
-                <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-pink-300 text-[10px] font-mono font-extrabold px-3 py-1 rounded-full border border-pink-500/30">
-                  LIVE IN MUMBAI
+                <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-pink-300 text-[10px] font-mono font-extrabold px-3 py-1 rounded-full border border-pink-500/30 uppercase tracking-wider">
+                  LIVE • {activeFeatured.activityType || activeFeatured.eventType || 'FEATURED'}
                 </span>
+
+                {/* Left & Right Manual Control Overlay Arrows */}
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                  <button
+                    type="button"
+                    onClick={handlePrevFeatured}
+                    aria-label="Previous Live Event"
+                    className="p-1.5 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md text-white border border-gray-700 transition"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextFeatured}
+                    aria-label="Next Live Event"
+                    className="p-1.5 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md text-white border border-gray-700 transition"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               <div className="p-5 space-y-4">
                 <div>
-                  <h3 className="text-xl font-black text-white italic tracking-wide">
-                    {featuredEvent.title}
+                  <h3 className="text-lg font-black text-white line-clamp-1 italic tracking-wide">
+                    {activeFeatured.title}
                   </h3>
-                  <p className="text-xs text-pink-400 font-serif italic">Live in Concert</p>
+                  <p className="text-xs text-pink-400 font-serif italic">
+                    {activeFeatured.venue?.name || 'Live Experience'}
+                  </p>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-gray-300 font-medium">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                    <span>24 Aug, 2025</span>
+                    <span>
+                      {new Date(activeFeatured.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} at {activeFeatured.startTime}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 text-orange-400" />
-                    <span>{featuredEvent.venue?.name || 'DY Patil Stadium'}, {featuredEvent.venue?.city || 'Mumbai'}</span>
+                    <span>{activeFeatured.venue?.location || activeFeatured.venue?.name || 'Mumbai'}</span>
                   </div>
                 </div>
 
                 <Link
-                  href={`/events/${featuredEvent.id}`}
-                  className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg transition"
+                  href={`/events/${activeFeatured.id}`}
+                  className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg transition transform hover:scale-[1.02]"
                 >
                   <span>Book Now</span>
                   <ChevronRight className="w-4 h-4" />
                 </Link>
+
+                {/* Rotating Progress Stepper Dots */}
+                {events.length > 1 && (
+                  <div className="flex items-center justify-center gap-1.5 pt-1">
+                    {events.slice(0, 10).map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setCurrentFeaturedIndex(idx)}
+                        aria-label={`Go to slide ${idx + 1}`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          currentFeaturedIndex % events.length === idx
+                            ? 'w-5 bg-gradient-to-r from-pink-500 to-orange-500'
+                            : 'w-1.5 bg-gray-700 hover:bg-gray-500'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
