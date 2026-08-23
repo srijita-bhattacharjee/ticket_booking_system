@@ -108,3 +108,8 @@ export const foodService = {
   createCoupon: (data: any) => api.post('/api/food/organiser/coupons', data),
   getOrganiserCoupons: () => api.get('/api/food/organiser/coupons'),
 };
+
+export const chatbotService = {
+  query: (message: string) => api.post('/api/chatbot/query', { message }),
+};
+

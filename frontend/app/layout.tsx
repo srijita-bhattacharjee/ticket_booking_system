@@ -2,6 +2,7 @@ import './globals.css';
 import Navbar from '../components/Navbar';
 import CursorGlow from '../components/CursorGlow';
 import MarqueeBanner from '../components/MarqueeBanner';
+import ChatbotWidget from '../components/ChatbotWidget';
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
 
@@ -30,6 +31,7 @@ export default function RootLayout({
             <footer className="border-t theme-border theme-bg-nav py-6 text-center text-xs theme-text-secondary transition-colors relative z-10">
               <p>© 2026 TicketVerse Engine. Powered by NestJS, Next.js, PostgreSQL & Redis.</p>
             </footer>
+            <ChatbotWidget />
           </AuthProvider>
         </ThemeProvider>
       </body>

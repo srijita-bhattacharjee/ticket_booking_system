@@ -14,6 +14,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { FoodModule } from './food/food.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 import { SeatsGateway } from './seats/seats.gateway';
 
 @Module({
@@ -41,6 +42,7 @@ import { SeatsGateway } from './seats/seats.gateway';
     NotificationsModule,
     AnalyticsModule,
     FoodModule,
+    ChatbotModule,
   ],
   providers: [
     SeatsGateway,
