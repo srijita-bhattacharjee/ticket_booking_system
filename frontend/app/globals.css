@@ -135,3 +135,31 @@ body {
 .animate-float-slow {
   animation: floatSlow 4s ease-in-out infinite;
 }
+
+@keyframes slideFadeIn {
+  0% {
+    opacity: 0.15;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0px);
+  }
+}
+
+@keyframes carouselProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-slide-fade {
+  animation: slideFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-carousel-progress {
+  animation: carouselProgress 3.5s linear infinite;
+}

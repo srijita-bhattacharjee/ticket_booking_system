@@ -193,9 +193,20 @@ export default function HomePage() {
 
           </div>
 
-          {/* Right Column: Auto-Rotating Live Events Spotlight Card */}
+          {/* Right Column: Auto-Rotating Live Events Spotlight Card with Smooth Slide-Fade Animation */}
           <div className="lg:col-span-5 flex justify-center">
-            <div key={activeFeatured.id} className="w-full max-w-sm rounded-3xl overflow-hidden bg-gray-900/85 border border-purple-500/30 shadow-2xl backdrop-blur-xl group hover:border-pink-500/50 transition-all duration-500 transform">
+            <div
+              key={activeFeatured.id}
+              className="w-full max-w-sm rounded-3xl overflow-hidden bg-gray-900/85 border border-purple-500/30 shadow-2xl backdrop-blur-xl group hover:border-pink-500/50 transition-all duration-500 animate-slide-fade relative"
+            >
+              {/* Animated Carousel Progress Timer Bar */}
+              <div className="w-full h-1 bg-gray-800/80 overflow-hidden relative z-20">
+                <div
+                  key={currentFeaturedIndex}
+                  className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 animate-carousel-progress"
+                />
+              </div>
+
               <div className="relative h-64 w-full overflow-hidden">
                 <Image
                   src={activeFeatured.imageUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80'}
@@ -215,7 +226,7 @@ export default function HomePage() {
                     type="button"
                     onClick={handlePrevFeatured}
                     aria-label="Previous Live Event"
-                    className="p-1.5 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md text-white border border-gray-700 transition"
+                    className="p-1.5 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md text-white border border-gray-700 transition transform hover:scale-110 active:scale-95"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
@@ -223,7 +234,7 @@ export default function HomePage() {
                     type="button"
                     onClick={handleNextFeatured}
                     aria-label="Next Live Event"
-                    className="p-1.5 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md text-white border border-gray-700 transition"
+                    className="p-1.5 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md text-white border border-gray-700 transition transform hover:scale-110 active:scale-95"
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -272,7 +283,7 @@ export default function HomePage() {
                         aria-label={`Go to slide ${idx + 1}`}
                         className={`h-1.5 rounded-full transition-all duration-300 ${
                           currentFeaturedIndex % events.length === idx
-                            ? 'w-5 bg-gradient-to-r from-pink-500 to-orange-500'
+                            ? 'w-6 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 shadow-md'
                             : 'w-1.5 bg-gray-700 hover:bg-gray-500'
                         }`}
                       />
