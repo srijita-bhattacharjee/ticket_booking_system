@@ -173,7 +173,7 @@ export default function TicketDetailsPage() {
               <span className="flex items-center gap-1.5 theme-text-main font-semibold">
                 <Tag className="w-4 h-4 theme-text-success" /> Coupon Redeemed ({booking.couponCode})
               </span>
-              <span className="theme-text-success font-bold">Saved ${booking.discountAmount?.toFixed(2)}</span>
+              <span className="theme-text-success font-bold">Saved ₹{booking.discountAmount?.toFixed(2)}</span>
             </div>
           )}
 
@@ -192,8 +192,24 @@ export default function TicketDetailsPage() {
                 : 'Simulate Organiser Gate QR Check-In Scanner'}
             </button>
           </div>
+
+          {/* Cancellation Policy Notice */}
+          <div className="border-t theme-border pt-4 space-y-2">
+            <p className="text-[11px] font-bold theme-text-secondary flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              Cancellation &amp; Refund Policy
+            </p>
+            <ul className="text-[10px] theme-text-secondary space-y-1">
+              <li>• Cancellations allowed up to <strong className="theme-text-main">24 hours</strong> before the event.</li>
+              <li>• Cancellations within 24 hours are <strong className="theme-text-main">non-refundable</strong>.</li>
+              <li>• Food add-ons are <strong className="theme-text-main">non-refundable</strong> once confirmed.</li>
+              <li>• Eligible refunds processed in <strong className="theme-text-main">5–7 business days</strong>.</li>
+              <li>• This ticket is <strong className="theme-text-main">non-transferable</strong> and valid for one-time use only.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+

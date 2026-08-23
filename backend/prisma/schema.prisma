@@ -209,6 +209,7 @@ model Booking {
   couponCode       String?       @map("coupon_code")
   status           BookingStatus @default(CONFIRMED)
   idempotencyKey   String?       @unique @map("idempotency_key")
+  refundEligible   Boolean       @default(true) @map("refund_eligible")
   createdAt        DateTime      @default(now()) @map("created_at")
   cancelledAt      DateTime?     @map("cancelled_at")
 

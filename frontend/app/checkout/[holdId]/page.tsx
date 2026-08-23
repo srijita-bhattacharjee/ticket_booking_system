@@ -336,20 +336,20 @@ export default function CheckoutPage() {
             <div className="border-t theme-border pt-4 space-y-2">
               <div className="flex justify-between text-xs theme-text-secondary">
                 <span>Seats Subtotal ({seatsList.length})</span>
-                <span className="theme-text-main">${seatsSubtotal.toFixed(2)}</span>
+                <span className="theme-text-main">₹{seatsSubtotal.toFixed(2)}</span>
               </div>
 
               {addonsSubtotal > 0 && (
                 <div className="flex justify-between text-xs theme-text-accent font-semibold">
                   <span>Food Add-Ons Subtotal</span>
-                  <span>+${addonsSubtotal.toFixed(2)}</span>
+                  <span>₹{addonsSubtotal.toFixed(2)}</span>
                 </div>
               )}
 
               {couponDiscount > 0 && (
                 <div className="flex justify-between text-xs theme-text-success font-semibold">
                   <span>Coupon Discount ({appliedCoupon?.code})</span>
-                  <span>-${couponDiscount.toFixed(2)}</span>
+                  <span>-₹{couponDiscount.toFixed(2)}</span>
                 </div>
               )}
 
@@ -360,7 +360,7 @@ export default function CheckoutPage() {
 
               <div className="flex justify-between text-lg font-extrabold theme-text-main pt-3 border-t theme-border">
                 <span>Total Payable</span>
-                <span className="theme-text-accent">${totalPayable.toFixed(2)}</span>
+                <span className="theme-text-accent">₹{totalPayable.toFixed(2)}</span>
               </div>
             </div>
 
@@ -371,6 +371,20 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* Cancellation Policy Notice */}
+          <div className="theme-bg-elevated theme-border border rounded-2xl p-4 space-y-2">
+            <p className="text-xs font-bold theme-text-main flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              Cancellation &amp; Refund Policy
+            </p>
+            <ul className="text-[11px] theme-text-secondary space-y-1">
+              <li>• Cancellations allowed up to <strong className="theme-text-main">24 hours</strong> before event time.</li>
+              <li>• Cancellations within 24 hours of the event are <strong className="theme-text-main">non-refundable</strong>.</li>
+              <li>• Food add-ons are <strong className="theme-text-main">non-refundable</strong> once confirmed.</li>
+              <li>• Eligible refunds processed in <strong className="theme-text-main">5–7 business days</strong>.</li>
+            </ul>
+          </div>
+
           {/* Razorpay Interactive Payment Gateway Component */}
           <RazorpayPaymentModal
             holdId={holdId}
@@ -378,6 +392,7 @@ export default function CheckoutPage() {
             onPaymentSuccess={handleRazorpayPaymentSuccess}
             isProcessing={bookingInProcess}
           />
+
         </div>
       </div>
     </div>

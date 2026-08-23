@@ -214,7 +214,7 @@ function EventsContent() {
                 <div>
                   <span className="text-[10px] theme-text-secondary uppercase block font-bold">Starting at</span>
                   <span className="text-sm font-extrabold theme-text-main">
-                    ${evt.eventSeats?.[0]?.price || 15}
+                    ₹{evt.startingPrice ?? evt.eventSeats?.[0]?.price ?? 15}
                   </span>
                 </div>
 

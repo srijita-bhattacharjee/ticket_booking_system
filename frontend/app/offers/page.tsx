@@ -31,17 +31,17 @@ export default function OffersPage() {
       title: 'Get 10% Off on your first booking!',
       description: 'Enjoy gourmet popcorn & cinema snacks discount on your first event reservation.',
       discount: '10% OFF',
-      minSpend: '$15',
+      minSpend: '₹15',
       badge: 'FIRST ORDER SPECIAL',
       bgGradient: 'from-purple-900/40 via-pink-900/30 to-orange-900/30',
     },
     {
       id: 'p2',
       code: 'TICKETBAY5',
-      title: 'Flat $5 Discount on VIP Seats',
-      description: 'Save on premium & VIP seat holds across all concerts and theater shows.',
-      discount: '$5 OFF',
-      minSpend: '$50',
+      title: 'Flat ₹5 Discount on VIP Seats',
+      description: 'Get ₹5 off on any premium seat.',
+      discount: '₹5 OFF',
+      minSpend: '₹50',
       badge: 'VIP PROMO',
       bgGradient: 'from-blue-900/40 via-indigo-900/30 to-purple-900/30',
     },
@@ -153,7 +153,7 @@ export default function OffersPage() {
                 </div>
 
                 <span className="text-sm font-black theme-btn-primary px-3 py-1 rounded-xl shadow-md font-mono">
-                  {c.discountPercent ? `${c.discountPercent}% OFF` : `$${c.discountAmount} OFF`}
+                  {c.discountPercent ? `${c.discountPercent}% OFF` : `₹${c.discountAmount} OFF`}
                 </span>
               </div>
 
@@ -161,7 +161,7 @@ export default function OffersPage() {
               <div className="space-y-2 text-xs theme-text-secondary border-t theme-border pt-3">
                 <p className="flex items-center justify-between">
                   <span>Minimum Order Spend:</span>
-                  <span className="font-bold theme-text-main font-mono">${c.minSpend || 15}</span>
+                  <span className="font-bold theme-text-main font-mono">₹{c.minSpend || 15}</span>
                 </p>
                 <p className="flex items-center justify-between">
                   <span>Verification Status:</span>

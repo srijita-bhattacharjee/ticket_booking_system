@@ -341,6 +341,7 @@ export class BookingsService {
         seats: {
           include: { eventSeat: true },
         },
+        event: true,
       },
     });
 
@@ -349,6 +350,23 @@ export class BookingsService {
     if (booking.status === BookingStatus.CANCELLED) {
       throw new ConflictException('Booking is already cancelled');
     }
+
+    // ─── Cancellation Policy: 24-hour rule ───────────────────────────────────
+    const now = new Date();
+    const eventStart = new Date(booking.event.eventDate);
+
+    // Combine event date + startTime string (e.g. "18:00") for precise enforcement
+    const [hours, minutes] = booking.event.startTime.split(':').map(Number);
+    eventStart.setHours(hours ?? 0, minutes ?? 0, 0, 0);
+
+    const hoursUntilEvent = (eventStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursUntilEvent < 0) {
+      throw new BadRequestException('Cannot cancel a booking for an event that has already passed.');
+    }
+
+    const refundEligible = hoursUntilEvent >= 24;
+    // ─────────────────────────────────────────────────────────────────────────
 
     const eventSeatIds = booking.seats.map((s) => s.eventSeatId);
     const category = booking.seats[0]?.eventSeat.category || 'STANDARD';
@@ -359,7 +377,8 @@ export class BookingsService {
         where: { id: bookingId },
         data: {
           status: BookingStatus.CANCELLED,
-          cancelledAt: new Date(),
+          cancelledAt: now,
+          refundEligible,
         },
       });
 
@@ -374,6 +393,10 @@ export class BookingsService {
       });
     });
 
+    this.logger.log(
+      `Booking ${bookingId} cancelled. Hours until event: ${hoursUntilEvent.toFixed(1)}h. Refund eligible: ${refundEligible}`,
+    );
+
     // 2. Broadcast WebSocket seat released event
     this.seatsGateway.notifySeatReleased(booking.eventId, eventSeatIds);
 
@@ -382,6 +405,17 @@ export class BookingsService {
       await onWaitlistOfferCallback(booking.eventId, eventSeatIds, category);
     }
 
-    return { success: true, message: 'Booking cancelled successfully. Seats freed for waitlist allocation.' };
+    const message = refundEligible
+      ? 'Booking cancelled successfully. A refund will be processed within 5–7 business days.'
+      : 'Booking cancelled. This cancellation is within 24 hours of the event and is not eligible for a refund.';
+
+    return {
+      success: true,
+      refundEligible,
+      refundAmount: refundEligible ? booking.totalAmount : 0,
+      hoursUntilEvent: Math.round(hoursUntilEvent),
+      message,
+    };
   }
 }
+

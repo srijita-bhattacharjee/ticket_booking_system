@@ -62,7 +62,7 @@ export default function OrganiserDashboardPage() {
             <span>Total Revenue</span>
             <DollarSign className="w-4 h-4 theme-text-success" />
           </div>
-          <p className="text-3xl font-extrabold theme-text-success">${summary?.totalRevenue?.toFixed(2) || '0.00'}</p>
+          <p className="text-3xl font-extrabold theme-text-success">₹{summary?.totalRevenue?.toFixed(2) || '0.00'}</p>
           <span className="text-[11px] theme-text-success font-medium">+14% vs previous show</span>
         </div>
 
@@ -117,7 +117,7 @@ export default function OrganiserDashboardPage() {
                   <td className="p-3 theme-text-secondary">{ev.venueName}</td>
                   <td className="p-3 font-semibold">{ev.ticketsSold} / {ev.totalSeats}</td>
                   <td className="p-3 font-bold theme-text-accent">{ev.occupancyRate}%</td>
-                  <td className="p-3 font-bold theme-text-success">${ev.totalRevenue?.toFixed(2)}</td>
+                  <td className="p-3 font-bold theme-text-success">₹{ev.totalRevenue?.toFixed(2)}</td>
                   <td className="p-3">
                     <span className="theme-badge-accent px-2 py-0.5 rounded font-semibold text-[11px]">
                       {ev.waitlistDemand} Waiting

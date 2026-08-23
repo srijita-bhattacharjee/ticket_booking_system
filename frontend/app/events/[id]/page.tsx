@@ -164,8 +164,8 @@ function EventDetailContent() {
             <div className="theme-bg-card p-4 rounded-2xl theme-border border text-right space-y-1 shrink-0">
               <span className="text-[10px] theme-text-secondary uppercase font-bold tracking-wider">Tiered Pricing</span>
               <div className="text-xs space-y-0.5">
-                <p className="theme-text-accent font-bold">Premium: ${event.seats?.find((s: any) => s.category === 'PREMIUM')?.price || 50}</p>
-                <p className="theme-text-success font-bold">Standard: ${event.seats?.find((s: any) => s.category === 'STANDARD')?.price || 30}</p>
+                <p className="theme-text-accent font-bold">Premium: ₹{event.seats?.find((s: any) => s.category === 'PREMIUM')?.price || 50}</p>
+                <p className="theme-text-success font-bold">Standard: ₹{event.seats?.find((s: any) => s.category === 'STANDARD')?.price || 30}</p>
               </div>
             </div>
           </div>
@@ -228,14 +228,14 @@ function EventDetailContent() {
                           {seat.category}
                         </span>
                       </div>
-                      <span className="font-bold theme-text-main">${seat.price}</span>
+                      <span className="font-bold theme-text-main">₹{seat.price}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="border-t theme-border pt-4 flex items-center justify-between">
                   <span className="text-sm font-semibold theme-text-secondary">Total Price</span>
-                  <span className="text-2xl font-extrabold theme-text-accent">${totalPrice.toFixed(2)}</span>
+                  <span className="text-2xl font-extrabold theme-text-accent">₹{totalPrice.toFixed(2)}</span>
                 </div>
 
                 <button

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { EventType, EventStatus, SeatCategory, SeatStatus } from '@prisma/client';
 
@@ -45,19 +45,38 @@ export class EventsService {
       orderBy: { eventDate: 'asc' },
     });
 
-    // Calculate dynamic available seat count
+    // Filter out events that are 10 minutes past their start time
+    const now = new Date();
+    const activeEvents = events.filter((ev) => {
+      const start = new Date(ev.eventDate);
+      if (ev.startTime) {
+        const [h, m] = ev.startTime.split(':').map(Number);
+        start.setHours(h ?? 0, m ?? 0, 0, 0);
+      }
+      const tenMinsPastStart = new Date(start.getTime() + 10 * 60 * 1000);
+      return now <= tenMinsPastStart;
+    });
+
+    // Calculate dynamic available seat count and minimum starting price
     const eventsWithAvailability = await Promise.all(
-      events.map(async (ev) => {
+      activeEvents.map(async (ev) => {
         const availableSeats = await this.prisma.eventSeat.count({
           where: { eventId: ev.id, status: SeatStatus.AVAILABLE },
         });
         const totalSeats = await this.prisma.eventSeat.count({
           where: { eventId: ev.id },
         });
+        const minSeat = await this.prisma.eventSeat.findFirst({
+          where: { eventId: ev.id },
+          orderBy: { price: 'asc' },
+          select: { price: true },
+        });
+
         return {
           ...ev,
           availableSeats,
           totalSeats,
+          startingPrice: minSeat?.price || 15,
           isSoldOut: availableSeats === 0,
         };
       })
@@ -106,6 +125,21 @@ export class EventsService {
   }
 
   async createEvent(organiserId: string, dto: CreateEventDto) {
+    // Enforce 3-day (72-hour) advance scheduling rule
+    const now = new Date();
+    const scheduledTime = new Date(dto.eventDate);
+    if (dto.startTime) {
+      const [h, m] = dto.startTime.split(':').map(Number);
+      scheduledTime.setHours(h ?? 0, m ?? 0, 0, 0);
+    }
+    const minScheduledTime = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    if (scheduledTime < minScheduledTime) {
+      throw new BadRequestException(
+        'Event must be scheduled at least 3 days (72 hours) in advance of the start time.',
+      );
+    }
+
     const venue = await this.prisma.venue.findUnique({
       where: { id: dto.venueId },
       include: { seats: true },

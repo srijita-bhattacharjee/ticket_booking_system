@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { bookingService } from '../../services/api';
-import { Ticket, QrCode, XCircle, CheckCircle2 } from 'lucide-react';
+import { Ticket, QrCode, XCircle, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; refundEligible: boolean } | null>(null);
 
   const fetchBookings = () => {
     setLoading(true);
@@ -25,13 +26,11 @@ export default function BookingsPage() {
   }, []);
 
   const handleCancelBooking = async (bookingId: string) => {
-    if (!confirm('Are you sure you want to cancel this booking? Freed seats will automatically be offered to waitlisted customers.')) {
-      return;
-    }
     setCancellingId(bookingId);
+    setConfirmCancelId(null);
     try {
       const res = await bookingService.cancel(bookingId);
-      setMessage(res.data.message);
+      setMessage({ text: res.data.message, refundEligible: res.data.refundEligible });
       fetchBookings();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to cancel booking');
@@ -48,9 +47,13 @@ export default function BookingsPage() {
       </div>
 
       {message && (
-        <div className="theme-bg-elevated theme-border border rounded-xl p-4 flex items-center gap-2 theme-text-success text-sm font-semibold">
-          <CheckCircle2 className="w-5 h-5 theme-text-success" />
-          <span>{message}</span>
+        <div className={`theme-bg-elevated theme-border border rounded-xl p-4 flex items-center gap-2 text-sm font-semibold ${
+          message.refundEligible ? 'text-emerald-400' : 'text-amber-400'
+        }`}>
+          {message.refundEligible
+            ? <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
+          <span>{message.text}</span>
         </div>
       )}
 
@@ -122,22 +125,111 @@ export default function BookingsPage() {
                     </Link>
                   )}
 
-                  {!isCancelled && (
+                  {!isCancelled && confirmCancelId !== b.id && (
                     <button
-                      onClick={() => handleCancelBooking(b.id)}
+                      onClick={() => setConfirmCancelId(b.id)}
                       disabled={cancellingId === b.id}
-                      className="theme-btn-secondary font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5"
+                      className="border border-red-500/40 text-red-400 hover:bg-red-500/10 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5"
                     >
-                      <XCircle className="w-4 h-4 theme-text-accent" />
-                      {cancellingId === b.id ? 'Cancelling...' : 'Cancel Booking'}
+                      <XCircle className="w-4 h-4" />
+                      Cancel Booking
                     </button>
                   )}
+
+                  {/* Detailed Cancellation & Refund Confirmation Prompt */}
+                  {!isCancelled && confirmCancelId === b.id && (() => {
+                    const now = new Date();
+                    const eventStart = new Date(b.event?.eventDate);
+                    if (b.event?.startTime) {
+                      const [h, m] = b.event.startTime.split(':').map(Number);
+                      eventStart.setHours(h ?? 0, m ?? 0, 0, 0);
+                    }
+                    const hoursUntil = (eventStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+                    const isRefundable = hoursUntil >= 24;
+                    const refundAmt = isRefundable ? (b.totalAmount || 0) : 0;
+
+                    return (
+                      <div className="w-full md:max-w-md theme-bg-elevated theme-border border-2 border-red-500/40 rounded-2xl p-4 space-y-3 shadow-xl">
+                        <div className="flex items-center justify-between border-b theme-border pb-2">
+                          <span className="text-xs font-extrabold text-red-400 flex items-center gap-1.5">
+                            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                            Confirm Cancellation
+                          </span>
+                          <span className="text-[10px] font-mono theme-text-secondary uppercase">
+                            Ref: {b.bookingReference}
+                          </span>
+                        </div>
+
+                        {/* Refundable Amount Display */}
+                        <div className={`p-3 rounded-xl border flex items-center justify-between text-xs font-bold ${
+                          isRefundable
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                        }`}>
+                          <div>
+                            <span className="block text-[10px] uppercase font-mono tracking-wider opacity-80">
+                              Refundable Amount
+                            </span>
+                            <span className="text-lg font-extrabold font-mono">
+                              ₹{refundAmt.toFixed(2)}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] px-2 py-1 rounded-full uppercase font-mono font-black ${
+                            isRefundable
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          }`}>
+                            {isRefundable ? '100% Refund Eligible' : 'Non-Refundable'}
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] theme-text-secondary leading-relaxed">
+                          {isRefundable
+                            ? `Showtime is in ${Math.round(hoursUntil)} hours (>=24h). Your full refund of ₹${refundAmt.toFixed(2)} will be credited in 5-7 business days.`
+                            : `Showtime is in ${Math.max(0, Math.round(hoursUntil))} hours (<24h). As per policy, cancellations within 24 hours are non-refundable.`}
+                        </p>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            onClick={() => handleCancelBooking(b.id)}
+                            disabled={cancellingId === b.id}
+                            className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            {cancellingId === b.id ? 'Processing...' : 'Confirm Cancellation'}
+                          </button>
+                          <button
+                            onClick={() => setConfirmCancelId(null)}
+                            className="px-4 py-2 theme-btn-secondary font-bold rounded-xl text-xs transition shrink-0"
+                          >
+                            Keep Booking
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Cancellation Policy Disclaimer */}
+      <div className="theme-bg-card theme-border border rounded-2xl p-5 space-y-3">
+        <h3 className="text-sm font-bold theme-text-main flex items-center gap-2">
+          <Info className="w-4 h-4 text-amber-400 shrink-0" />
+          Cancellation Policy
+        </h3>
+        <ul className="text-xs theme-text-secondary space-y-1.5 list-none">
+          <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0 mt-0.5">•</span>Cancellations are allowed up to <strong className="theme-text-main">24 hours before</strong> the event start time.</li>
+          <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0 mt-0.5">•</span>Cancellations made within 24 hours of the event are <strong className="theme-text-main">non-refundable</strong>.</li>
+          <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0 mt-0.5">•</span>Refunds (if eligible) are processed within <strong className="theme-text-main">5–7 business days</strong> to the original payment method.</li>
+          <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0 mt-0.5">•</span>Food add-on combos are <strong className="theme-text-main">non-refundable</strong> once a booking is confirmed.</li>
+          <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0 mt-0.5">•</span>Cancelled seats are automatically offered to customers on the <strong className="theme-text-main">waitlist</strong>.</li>
+          <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0 mt-0.5">•</span>TicketVerse reserves the right to cancel events due to unforeseen circumstances; full refunds will be issued in such cases.</li>
+        </ul>
+      </div>
     </div>
   );
 }

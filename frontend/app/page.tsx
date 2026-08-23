@@ -84,7 +84,7 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base text-gray-300 max-w-xl font-medium leading-relaxed">
+            <p className="text-sm sm:text-base text-white max-w-xl font-medium leading-relaxed drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
               From electrifying concerts to blockbusters — book your seats to the best experiences with real-time seat maps and instant 10-minute hold reservation locks.
             </p>
 
@@ -100,34 +100,34 @@ export default function HomePage() {
             </div>
 
             {/* 3 Trust Badges below Hero */}
-            <div className="pt-6 border-t border-gray-800/80 grid grid-cols-3 gap-3">
+            <div className="pt-6 border-t border-gray-700/60 grid grid-cols-3 gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 shrink-0">
+                <div className="w-8 h-8 rounded-full bg-pink-500/40 border border-pink-400/60 flex items-center justify-center text-pink-300 shrink-0 shadow-md">
                   <Ticket className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">Easy Booking</h4>
-                  <p className="text-[10px] text-gray-400">Fast & hassle-free</p>
+                  <h4 className="text-xs font-bold text-white leading-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">Easy Booking</h4>
+                  <p className="text-[10px] text-gray-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">Fast &amp; hassle-free</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 shrink-0">
+                <div className="w-8 h-8 rounded-full bg-orange-500/40 border border-orange-400/60 flex items-center justify-center text-orange-300 shrink-0 shadow-md">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">Secure Payments</h4>
-                  <p className="text-[10px] text-gray-400">100% safe checkout</p>
+                  <h4 className="text-xs font-bold text-white leading-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">Secure Payments</h4>
+                  <p className="text-[10px] text-gray-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">100% safe checkout</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
+                <div className="w-8 h-8 rounded-full bg-purple-500/40 border border-purple-400/60 flex items-center justify-center text-purple-300 shrink-0 shadow-md">
                   <Headphones className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">24/7 Support</h4>
-                  <p className="text-[10px] text-gray-400">We're here for you</p>
+                  <h4 className="text-xs font-bold text-white leading-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">24/7 Support</h4>
+                  <p className="text-[10px] text-gray-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">We&apos;re here for you</p>
                 </div>
               </div>
             </div>
@@ -342,7 +342,7 @@ export default function HomePage() {
                 <div>
                   <span className="text-[9px] theme-text-secondary uppercase block font-bold">From</span>
                   <span className="text-sm font-black theme-text-main">
-                    ₹{evt.eventSeats?.[0]?.price || (idx === 0 ? 250 : idx === 1 ? 899 : idx === 2 ? 180 : 499)}
+                    ₹{evt.startingPrice ?? evt.eventSeats?.[0]?.price ?? 15}
                   </span>
                 </div>
 

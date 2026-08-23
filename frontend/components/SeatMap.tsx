@@ -122,7 +122,7 @@ export default function SeatMap({
                     disabled={isHeld || isBooked}
                     onClick={() => onSeatToggle(seat.id)}
                     className={`w-9 h-9 rounded-lg border text-xs font-bold transition flex items-center justify-center ${seatStyles}`}
-                    title={`Row ${rowLabel} Seat ${seat.venueSeat.seatNumber} (${seat.category}) - $${seat.price}`}
+                    title={`Row ${rowLabel} Seat ${seat.venueSeat.seatNumber} (${seat.category}) - ₹${seat.price}`}
                   >
                     {seat.venueSeat.seatNumber}
                   </button>

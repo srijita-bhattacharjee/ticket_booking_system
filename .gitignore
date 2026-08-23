@@ -47,3 +47,9 @@ scratch/
 coverage/
 **/coverage/
 .nyc_output/
+
+# Cloudflare Tunnels
+cloudflared
+cloudflared.exe
+*.cloudflared*
+

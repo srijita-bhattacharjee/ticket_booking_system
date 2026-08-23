@@ -152,7 +152,7 @@ async function main() {
       title: 'Avengers: Endgame — Special Re-Screening',
       description: 'The epic finale of the Infinity Saga on the big screen with Dolby Atmos surround sound.',
       eventType: EventType.MOVIE,
-      eventDate: new Date(Date.now() + 86400000 * 2),
+      eventDate: new Date(Date.now() + 86400000 * 3),
       startTime: '18:00',
       imageUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=80',
       trailerUrl: 'https://www.youtube.com/watch?v=TcMBFSGVi1c',

@@ -92,7 +92,7 @@ export default function TicketStub3D({ event, tier = 'GENERAL', onSelectTier }: 
         <div className="p-5 pt-2 flex items-center justify-between">
           <div>
             <span className="text-[10px] uppercase theme-text-secondary font-mono block">Price</span>
-            <p className="text-xl font-mono font-extrabold theme-text-accent">${price}</p>
+            <p className="text-xl font-mono font-extrabold theme-text-accent">₹{price}</p>
           </div>
 
           {onSelectTier ? (

@@ -13,12 +13,15 @@ export default function CreateEventPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Minimum allowed event date is 3 days from today
+  const minDateString = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
   const [form, setForm] = useState({
     venueId: '',
     title: '',
     description: '',
     eventType: 'MOVIE',
-    eventDate: '',
+    eventDate: minDateString,
     startTime: '19:00',
     imageUrl: '',
     trailerUrl: '',
@@ -215,10 +218,13 @@ export default function CreateEventPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold theme-text-secondary mb-1">Event Date</label>
+              <label className="block text-xs font-bold theme-text-secondary mb-1">
+                Event Date <span className="text-[10px] text-amber-400 font-normal">(Min 3 days in advance)</span>
+              </label>
               <input
                 type="date"
                 required
+                min={minDateString}
                 value={form.eventDate}
                 onChange={(e) => setForm({ ...form, eventDate: e.target.value })}
                 className="w-full theme-bg-input theme-border border rounded-xl p-3 text-xs theme-text-main focus:outline-none"
@@ -242,7 +248,7 @@ export default function CreateEventPage() {
             <h4 className="text-xs font-bold theme-text-secondary uppercase tracking-wider">Category Tiered Pricing</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-amber-500 mb-1">Premium Seat Price ($)</label>
+                <label className="block text-xs font-semibold text-amber-500 mb-1">Premium Seat Price (₹)</label>
                 <input
                   type="number"
                   min={1}
@@ -253,7 +259,7 @@ export default function CreateEventPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold theme-text-success mb-1">Standard Seat Price ($)</label>
+                <label className="block text-xs font-semibold theme-text-success mb-1">Standard Seat Price (₹)</label>
                 <input
                   type="number"
                   min={1}

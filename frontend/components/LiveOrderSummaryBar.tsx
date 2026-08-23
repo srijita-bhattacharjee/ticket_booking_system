@@ -45,7 +45,7 @@ export default function LiveOrderSummaryBar({
       <div className="flex items-center gap-4">
         <div className="text-right">
           <span className="text-[10px] uppercase theme-text-secondary font-mono block">Total Locked</span>
-          <p className="text-xl font-mono font-extrabold theme-text-accent">${totalPrice.toFixed(2)}</p>
+          <p className="text-xl font-mono font-extrabold theme-text-accent">₹{totalPrice.toFixed(2)}</p>
         </div>
 
         <button
