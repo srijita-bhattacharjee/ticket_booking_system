@@ -429,3 +429,17 @@ model BookingAddon {
 
   @@map("booking_addons")
 }
+
+model OtpVerification {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  otp          String
+  name         String
+  passwordHash String   @map("password_hash")
+  role         Role     @default(CUSTOMER)
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("otp_verifications")
+}
+

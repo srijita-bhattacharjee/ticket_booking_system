@@ -9,6 +9,16 @@ import { GetUser } from '../common/decorators/user.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('send-signup-otp')
+  async sendSignupOtp(@Body() dto: RegisterDto) {
+    return this.authService.sendSignupOtp(dto);
+  }
+
+  @Post('verify-signup-otp')
+  async verifySignupOtp(@Body() body: { email: string; otp: string }) {
+    return this.authService.verifySignupOtp(body.email, body.otp);
+  }
+
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);

@@ -112,4 +112,38 @@ export class NotificationsService {
       this.logger.error(`Failed to send waitlist email: ${err.message}`);
     }
   }
+
+  async sendOtpEmail(toEmail: string, userName: string, otp: string) {
+    try {
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 30px; border-radius: 12px;">
+          <h2 style="color: #38bdf8; text-align: center;">🔐 TicketVerse Email Verification</h2>
+          <p>Hi <strong>${userName}</strong>,</p>
+          <p>Thank you for signing up on TicketVerse! Please use the following 6-digit OTP code to verify your email address and activate your account:</p>
+          
+          <div style="text-align: center; margin: 25px 0; background: #1e293b; padding: 20px; border-radius: 8px; border: 2px dashed #38bdf8;">
+            <span style="font-family: monospace; font-size: 32px; font-weight: font-black; color: #f59e0b; letter-spacing: 6px;">${otp}</span>
+          </div>
+
+          <p style="font-size: 12px; color: #94a3b8; text-align: center;">This OTP is valid for 10 minutes. If you did not request this code, please ignore this email.</p>
+        </div>
+      `;
+
+      const info = await this.transporter.sendMail({
+        from: '"TicketVerse Security" <no-reply@ticketbooking.com>',
+        to: toEmail,
+        subject: `🔐 TicketVerse Signup Verification OTP: ${otp}`,
+        html: htmlContent,
+      });
+
+      this.logger.log(`Verification OTP email sent to ${toEmail}. MessageId: ${info.messageId}`);
+      if (nodemailer.getTestMessageUrl(info)) {
+        this.logger.log(`Preview OTP Email URL: ${nodemailer.getTestMessageUrl(info)}`);
+      }
+      return true;
+    } catch (err: any) {
+      this.logger.error(`Failed to send OTP email to ${toEmail}: ${err.message}`);
+      return false;
+    }
+  }
 }

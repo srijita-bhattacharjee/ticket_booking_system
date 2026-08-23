@@ -26,6 +26,8 @@ api.interceptors.request.use((config) => {
 export const authService = {
   login: (data: any) => api.post('/api/auth/login', data),
   register: (data: any) => api.post('/api/auth/register', data),
+  sendSignupOtp: (data: any) => api.post('/api/auth/send-signup-otp', data),
+  verifySignupOtp: (data: { email: string; otp: string }) => api.post('/api/auth/verify-signup-otp', data),
   getMe: () => api.get('/api/auth/me'),
 };
 
