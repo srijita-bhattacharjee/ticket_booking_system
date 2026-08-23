@@ -61,19 +61,19 @@ function LoginForm() {
         </p>
         <div className="grid grid-cols-3 gap-2">
           <button
-            onClick={() => fillPreset('john@example.com')}
+            onClick={() => fillPreset('customer@example.com')}
             className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl text-[11px] font-semibold text-slate-200 text-center border border-slate-700 transition"
           >
             Customer
           </button>
           <button
-            onClick={() => fillPreset('organiser@apexevents.com')}
+            onClick={() => fillPreset('organizer@example.com')}
             className="bg-purple-900/60 hover:bg-purple-900 p-2 rounded-xl text-[11px] font-semibold text-purple-300 text-center border border-purple-700 transition"
           >
             Organiser
           </button>
           <button
-            onClick={() => fillPreset('admin@ticketbooking.com')}
+            onClick={() => fillPreset('admin@example.com')}
             className="bg-amber-900/60 hover:bg-amber-900 p-2 rounded-xl text-[11px] font-semibold text-amber-300 text-center border border-amber-700 transition"
           >
             Admin

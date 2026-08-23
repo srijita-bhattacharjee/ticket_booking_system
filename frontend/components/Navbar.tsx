@@ -119,8 +119,8 @@ export default function Navbar() {
             <span className="hidden lg:inline">Offers</span>
           </Link>
 
-          <Link href="/events" className="theme-text-secondary hover:theme-text-main transition text-xs font-semibold flex items-center gap-1.5">
-            <Heart className="w-4 h-4 text-purple-400" />
+          <Link href="/wishlist" className="theme-text-secondary hover:theme-text-main transition text-xs font-semibold flex items-center gap-1.5">
+            <Heart className="w-4 h-4 text-pink-400" />
             <span className="hidden lg:inline">Wishlist</span>
           </Link>
 

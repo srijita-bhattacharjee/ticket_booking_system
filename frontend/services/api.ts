@@ -113,3 +113,9 @@ export const chatbotService = {
   query: (message: string) => api.post('/api/chatbot/query', { message }),
 };
 
+export const wishlistService = {
+  toggle: (eventId: string) => api.post(`/api/wishlist/${eventId}`),
+  getIds: () => api.get<string[]>('/api/wishlist/ids'),
+  getWishlist: () => api.get('/api/wishlist'),
+};
+

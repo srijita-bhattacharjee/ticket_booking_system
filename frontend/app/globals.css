@@ -20,15 +20,15 @@
 }
 
 [data-theme="light"] {
-  --bg-main: #F8F9FA;
+  --bg-main: #f5edf5;
   --bg-nav: #FFFFFF;
   --bg-card: #FFFFFF;
-  --bg-card-elevated: #F1F3F5;
+  --bg-card-elevated: #EFE4EF;
   --primary-accent: #E94E2B;
   --accent-hover: #D73F1C;
   --text-main: #0F172A;
   --text-secondary: #64748B;
-  --border-color: #E2E8F0;
+  --border-color: #E6D5E6;
   --color-success: #10B981;
   --input-bg: #FFFFFF;
 }

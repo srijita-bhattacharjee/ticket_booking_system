@@ -1,16 +1,21 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { EventType, EventStatus, SeatCategory, SeatStatus } from '@prisma/client';
+import { EventType, EventStatus, SeatCategory, SeatStatus, ActivityType, BookingModel } from '@prisma/client';
 
 export interface CreateEventDto {
   venueId: string;
+  hallId?: string;
   title: string;
   description: string;
   eventType: EventType;
+  activityType?: ActivityType;
+  bookingModel?: BookingModel;
+  resourceConfig?: any;
   eventDate: string;
   startTime: string;
   imageUrl?: string;
   trailerUrl?: string;
+  vipPrice?: number;
   premiumPrice: number;
   standardPrice: number;
 }
@@ -150,9 +155,13 @@ export class EventsService {
       data: {
         organiserId,
         venueId: dto.venueId,
+        hallId: dto.hallId || null,
         title: dto.title,
         description: dto.description,
         eventType: dto.eventType,
+        activityType: dto.activityType || 'CINEMA',
+        bookingModel: dto.bookingModel || 'SEAT',
+        resourceConfig: dto.resourceConfig ? (typeof dto.resourceConfig === 'string' ? JSON.parse(dto.resourceConfig) : dto.resourceConfig) : null,
         eventDate: new Date(dto.eventDate),
         startTime: dto.startTime,
         imageUrl: dto.imageUrl || null,
@@ -162,11 +171,17 @@ export class EventsService {
     });
 
     // Populate event seats per venue seat layout
+    const getSeatPrice = (cat: SeatCategory) => {
+      if (cat === SeatCategory.VIP) return dto.vipPrice || 100;
+      if (cat === SeatCategory.PREMIUM) return dto.premiumPrice || 50;
+      return dto.standardPrice || 30;
+    };
+
     const eventSeats = venue.seats.map((vs) => ({
       eventId: event.id,
       venueSeatId: vs.id,
       category: vs.category,
-      price: vs.category === SeatCategory.PREMIUM ? (dto.premiumPrice || 50) : (dto.standardPrice || 30),
+      price: getSeatPrice(vs.category),
       status: SeatStatus.AVAILABLE,
     }));
 

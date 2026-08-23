@@ -28,9 +28,6 @@ export default function RootLayout({
               {children}
             </main>
             <MarqueeBanner direction="right" />
-            <footer className="border-t theme-border theme-bg-nav py-6 text-center text-xs theme-text-secondary transition-colors relative z-10">
-              <p>© 2026 TicketVerse Engine. Powered by NestJS, Next.js, PostgreSQL & Redis.</p>
-            </footer>
             <ChatbotWidget />
           </AuthProvider>
         </ThemeProvider>

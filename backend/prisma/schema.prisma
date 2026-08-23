@@ -24,6 +24,30 @@ enum EventType {
   WORKSHOP
 }
 
+enum ActivityType {
+  CINEMA
+  THEATRE
+  CONCERT
+  WORKSHOP
+  SPORTS
+  GAME
+  EXHIBITION
+  CONFERENCE
+  AMUSEMENT
+  OTHER
+}
+
+enum BookingModel {
+  SEAT
+  GENERAL_ADMISSION
+  CAPACITY
+  SLOT
+  TABLE
+  TEAM
+  PASS
+  CUSTOM
+}
+
 enum EventStatus {
   UPCOMING
   ON_SALE
@@ -35,6 +59,8 @@ enum EventStatus {
 enum SeatCategory {
   PREMIUM
   STANDARD
+  VIP
+  ACCESSIBLE
 }
 
 enum SeatStatus {
@@ -95,6 +121,7 @@ model User {
   bookings     Booking[]
   waitlists    WaitlistEntry[]
   partnerships PartnershipProof[]
+  wishlists    Wishlist[]
 
   @@map("users")
 }
@@ -108,6 +135,7 @@ model Venue {
   createdAt   DateTime    @default(now()) @map("created_at")
 
   createdBy   User        @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  halls       VenueHall[]
   seats       VenueSeat[]
   events      Event[]
   foodStalls  FoodStall[]
@@ -115,14 +143,33 @@ model Venue {
   @@map("venues")
 }
 
+model VenueHall {
+  id              String         @id @default(uuid())
+  venueId         String         @map("venue_id")
+  name            String
+  code            String?
+  supportedModels BookingModel[] @default([SEAT])
+  capacity        Int            @default(0)
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  venue           Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  seats           VenueSeat[]
+  events          Event[]
+
+  @@map("venue_halls")
+}
+
 model VenueSeat {
   id         String       @id @default(uuid())
   venueId    String       @map("venue_id")
+  hallId     String?      @map("hall_id")
+  section    String?
   rowNumber  String       @map("row_number")
   seatNumber Int          @map("seat_number")
   category   SeatCategory @default(STANDARD)
 
   venue      Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  hall       VenueHall?   @relation(fields: [hallId], references: [id], onDelete: SetNull)
   eventSeats EventSeat[]
 
   @@unique([venueId, rowNumber, seatNumber])
@@ -130,28 +177,47 @@ model VenueSeat {
 }
 
 model Event {
-  id          String      @id @default(uuid())
-  organiserId String      @map("organiser_id")
-  venueId     String      @map("venue_id")
-  title       String
-  description String
-  eventType   EventType   @default(MOVIE) @map("event_type")
-  eventDate   DateTime    @map("event_date")
-  startTime   String      @map("start_time")
-  imageUrl    String?     @map("image_url")
-  trailerUrl  String?     @map("trailer_url")
-  status      EventStatus @default(ON_SALE)
-  createdAt   DateTime    @default(now()) @map("created_at")
+  id             String        @id @default(uuid())
+  organiserId    String        @map("organiser_id")
+  venueId        String        @map("venue_id")
+  hallId         String?       @map("hall_id")
+  title          String
+  description    String
+  eventType      EventType     @default(MOVIE) @map("event_type")
+  activityType   ActivityType  @default(CINEMA) @map("activity_type")
+  bookingModel   BookingModel  @default(SEAT) @map("booking_model")
+  resourceConfig Json?         @map("resource_config")
+  eventDate      DateTime      @map("event_date")
+  startTime      String        @map("start_time")
+  imageUrl       String?       @map("image_url")
+  trailerUrl     String?       @map("trailer_url")
+  status         EventStatus   @default(ON_SALE)
+  createdAt      DateTime      @default(now()) @map("created_at")
 
-  organiser   User        @relation(fields: [organiserId], references: [id], onDelete: Cascade)
-  venue       Venue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  seats       EventSeat[]
-  holds       Hold[]
-  bookings    Booking[]
-  waitlists   WaitlistEntry[]
-  coupons     FoodCoupon[]
+  organiser      User          @relation(fields: [organiserId], references: [id], onDelete: Cascade)
+  venue          Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  hall           VenueHall?    @relation(fields: [hallId], references: [id], onDelete: SetNull)
+  seats          EventSeat[]
+  holds          Hold[]
+  bookings       Booking[]
+  waitlists      WaitlistEntry[]
+  coupons        FoodCoupon[]
+  wishlists      Wishlist[]
 
   @@map("events")
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  eventId   String   @map("event_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("wishlists")
 }
 
 model EventSeat {

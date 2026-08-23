@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { eventService } from '../services/api';
+import { eventService, wishlistService } from '../services/api';
 import {
   Ticket,
   Music,
@@ -31,9 +31,12 @@ export default function HomePage() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
+  const [wishlistPending, setWishlistPending] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchEvents();
+    fetchWishlistedIds();
   }, []);
 
   const fetchEvents = async () => {
@@ -45,6 +48,41 @@ export default function HomePage() {
       console.error('Error fetching events:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWishlistedIds = async () => {
+    try {
+      const res = await wishlistService.getIds();
+      setWishlistedIds(new Set(res.data));
+    } catch {
+      // Not logged in — silent fail, heart buttons still work (redirect to login)
+    }
+  };
+
+  const handleWishlistToggle = async (eventId: string) => {
+    if (wishlistPending.has(eventId)) return;
+    // Optimistic update
+    setWishlistPending((p) => new Set(p).add(eventId));
+    setWishlistedIds((prev) => {
+      const next = new Set(prev);
+      next.has(eventId) ? next.delete(eventId) : next.add(eventId);
+      return next;
+    });
+    try {
+      await wishlistService.toggle(eventId);
+    } catch (err: any) {
+      // Revert on failure (e.g. 401 not logged in)
+      setWishlistedIds((prev) => {
+        const next = new Set(prev);
+        next.has(eventId) ? next.delete(eventId) : next.add(eventId);
+        return next;
+      });
+      if (err?.response?.status === 401) {
+        window.location.href = '/login';
+      }
+    } finally {
+      setWishlistPending((p) => { const n = new Set(p); n.delete(eventId); return n; });
     }
   };
 
@@ -316,10 +354,18 @@ export default function HomePage() {
                   {/* Wishlist Heart Icon */}
                   <button
                     type="button"
-                    onClick={() => alert('Added to wishlist!')}
-                    className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md transition"
+                    onClick={() => handleWishlistToggle(evt.id)}
+                    disabled={wishlistPending.has(evt.id)}
+                    title={wishlistedIds.has(evt.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md transition disabled:opacity-50"
                   >
-                    <Heart className="w-3.5 h-3.5 hover:text-pink-500" />
+                    <Heart
+                      className={`w-3.5 h-3.5 transition-colors ${
+                        wishlistedIds.has(evt.id)
+                          ? 'text-pink-500 fill-pink-500'
+                          : 'text-white'
+                      }`}
+                    />
                   </button>
                 </div>
 

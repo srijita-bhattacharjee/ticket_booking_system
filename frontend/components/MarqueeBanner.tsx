@@ -8,13 +8,12 @@ interface MarqueeBannerProps {
 export default function MarqueeBanner({
   direction = 'left',
   items = [
-    '🔥 HIGH-DEMAND CONCERTS & MOVIES',
-    '⚡ ZERO RACE CONDITIONS',
-    '⏱️ 10-MINUTE ATOMIC REDIS HOLD LOCKS',
-    '🎟️ HMAC-SIGNED QR E-TICKETS',
-    '🍿 GOURMET POPCORN & BEVERAGE COMBOS',
-    '🏷️ EXCLUSIVE FOOD DISCOUNT COUPONS',
-    '🎧 AUTOMATED FIFO WAITLIST REALLOCATION',
+    '🎬 NEW RELEASES & BLOCKBUSTER MOVIES',
+    '🎤 LIVE MUSIC CONCERTS & FESTIVALS',
+    '🎭 EXCLUSIVE THEATRE SHOWS & PLAYS',
+    '🍿 GOURMET SNACK & BEVERAGE COMBOS',
+    '🎟️ SPECIAL FAN DISCOUNT OFFERS',
+    '⚡ INSTANT DIGITAL QR ENTRY PASSES',
   ],
 }: MarqueeBannerProps) {
   const content = items.join('   ★   ');

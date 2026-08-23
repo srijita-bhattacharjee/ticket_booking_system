@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ChatbotController } from './chatbot.controller';
 import { ChatbotService } from './chatbot.service';
+import { RAGService } from './rag.service';
 import { DatabaseModule } from '../database/database.module';
 
 @Module({
@@ -18,7 +19,7 @@ import { DatabaseModule } from '../database/database.module';
     }),
   ],
   controllers: [ChatbotController],
-  providers: [ChatbotService],
-  exports: [ChatbotService],
+  providers: [ChatbotService, RAGService],
+  exports: [ChatbotService, RAGService],
 })
 export class ChatbotModule {}

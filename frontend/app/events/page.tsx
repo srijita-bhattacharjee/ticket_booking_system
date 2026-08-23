@@ -3,8 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { eventService } from '../../services/api';
-import { Film, Music, Sparkles, Trophy, Mic, Palette, MapPin, Calendar, ChevronRight, X } from 'lucide-react';
+import { eventService, wishlistService } from '../../services/api';
+import { Film, Music, Sparkles, Trophy, Mic, Palette, MapPin, Calendar, ChevronRight, X, Heart } from 'lucide-react';
 import Image from 'next/image';
 
 function EventsContent() {
@@ -14,6 +14,7 @@ function EventsContent() {
   const searchParam = searchParams.get('search') || '';
 
   const [events, setEvents] = useState<any[]>([]);
+  const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
   const [typeFilter, setTypeFilter] = useState<string>(typeParam);
   const [searchQuery, setSearchQuery] = useState<string>(searchParam);
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,15 @@ function EventsContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+      wishlistService
+        .getIds()
+        .then((res) => setWishlistedIds(new Set(res.data || [])))
+        .catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
     eventService
       .getAll(typeFilter || undefined, searchQuery || undefined)
@@ -31,6 +41,30 @@ function EventsContent() {
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, [typeFilter, searchQuery]);
+
+  const handleWishlistToggle = async (e: React.MouseEvent, eventId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      router.push('/login?redirect=' + encodeURIComponent('/events'));
+      return;
+    }
+
+    setWishlistedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(eventId)) next.delete(eventId);
+      else next.add(eventId);
+      return next;
+    });
+
+    try {
+      await wishlistService.toggle(eventId);
+    } catch (err) {
+      console.error('Failed to toggle wishlist', err);
+    }
+  };
 
   const handleCategorySelect = (type: string) => {
     const params = new URLSearchParams();
@@ -187,6 +221,20 @@ function EventsContent() {
                   <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-pink-300 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-pink-500/30">
                     {evt.eventType}
                   </span>
+                  <button
+                    type="button"
+                    onClick={(e) => handleWishlistToggle(e, evt.id)}
+                    title={wishlistedIds.has(evt.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                    className="absolute top-3 right-3 p-2 rounded-full bg-black/60 hover:bg-black/90 backdrop-blur-md transition shadow-md group/btn z-10"
+                  >
+                    <Heart
+                      className={`w-4 h-4 transition ${
+                        wishlistedIds.has(evt.id)
+                          ? 'text-pink-500 fill-pink-500 scale-110'
+                          : 'text-slate-300 hover:text-pink-400'
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 <div className="p-4 space-y-2">
