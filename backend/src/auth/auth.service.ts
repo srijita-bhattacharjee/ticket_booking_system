@@ -2,6 +2,7 @@ import { Injectable, ConflictException, UnauthorizedException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RedisService } from '../common/redis/redis.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
@@ -12,7 +13,60 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private notificationsService: NotificationsService,
+    private redisService: RedisService,
   ) {}
+
+  async sendPasswordResetOtp(email: string) {
+    const cleanEmail = email.toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { email: cleanEmail },
+    });
+
+    if (!user) {
+      // Return success to avoid email enumeration security vulnerability
+      return {
+        message: 'If the email is registered, a password reset code has been sent.',
+      };
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await this.redisService.setKey(`reset-otp:${cleanEmail}`, otp, 600); // 10 minutes TTL
+
+    await this.notificationsService.sendPasswordResetEmail(cleanEmail, user.name, otp);
+
+    return {
+      message: 'If the email is registered, a password reset code has been sent.',
+    };
+  }
+
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    const cleanEmail = email.toLowerCase();
+    const cachedOtp = await this.redisService.getKey(`reset-otp:${cleanEmail}`);
+
+    if (!cachedOtp || cachedOtp !== otp.trim()) {
+      throw new BadRequestException('Invalid or expired password reset OTP');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: cleanEmail },
+    });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { email: cleanEmail },
+      data: { passwordHash },
+    });
+
+    await this.redisService.delKey(`reset-otp:${cleanEmail}`);
+
+    return {
+      message: 'Password reset successful. You can now login with your new password.',
+    };
+  }
+
 
   async sendSignupOtp(dto: RegisterDto) {
     const email = dto.email.toLowerCase();

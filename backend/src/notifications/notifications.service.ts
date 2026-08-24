@@ -153,4 +153,36 @@ export class NotificationsService {
       return false;
     }
   }
+
+  async sendPasswordResetEmail(toEmail: string, userName: string, otp: string): Promise<boolean> {
+    try {
+      await this.transporter.sendMail({
+        from: this.fromAddress,
+        to: toEmail,
+        subject: `🔑 Reset Your TicketVerse Password: ${otp}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 30px; border-radius: 12px;">
+            <h2 style="color: #38bdf8; text-align: center;">🔑 TicketVerse Password Reset Request</h2>
+            <p>Hi <strong>${userName}</strong>,</p>
+            <p>We received a request to reset your TicketVerse account password. Use the verification code below to complete the reset process:</p>
+
+            <div style="text-align: center; margin: 25px 0; background: #1e293b; padding: 24px; border-radius: 8px; border: 2px dashed #f59e0b;">
+              <span style="font-family: monospace; font-size: 36px; font-weight: 900; color: #f59e0b; letter-spacing: 10px;">${otp}</span>
+            </div>
+
+            <p style="font-size: 12px; color: #94a3b8; text-align: center;">
+              This code is valid for <strong>10 minutes</strong>.<br/>
+              If you didn't request a password reset, you can safely ignore this email and your password will remain unchanged.
+            </p>
+          </div>
+        `,
+      });
+
+      this.logger.log(`Password reset email sent to ${toEmail}`);
+      return true;
+    } catch (err: any) {
+      this.logger.error(`Failed to send password reset email to ${toEmail}: ${err.message}`);
+      return false;
+    }
+  }
 }

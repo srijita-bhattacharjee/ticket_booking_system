@@ -16,7 +16,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { FoodModule } from './food/food.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { WishlistModule } from './wishlist/wishlist.module';
-import { SeatsGateway } from './seats/seats.gateway';
+import { SeatsModule } from './seats/seats.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -46,10 +46,10 @@ import { HealthController } from './health.controller';
     FoodModule,
     ChatbotModule,
     WishlistModule,
+    SeatsModule,
   ],
   controllers: [HealthController],
   providers: [
-    SeatsGateway,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
@@ -57,3 +57,4 @@ import { HealthController } from './health.controller';
   ],
 })
 export class AppModule {}
+

@@ -9,6 +9,17 @@ import { GetUser } from '../common/decorators/user.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.sendPasswordResetOtp(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { email: string; otp: string; newPassword?: string; password?: string }) {
+    const newPassword = body.newPassword || body.password || '';
+    return this.authService.resetPassword(body.email, body.otp, newPassword);
+  }
+
   @Post('send-signup-otp')
   async sendSignupOtp(@Body() dto: RegisterDto) {
     return this.authService.sendSignupOtp(dto);

@@ -191,64 +191,71 @@ export class BookingsService {
     const bookingRef = 'BK-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
     // 3. Database Transaction to convert HELD seats to BOOKED
-    const booking = await this.prisma.$transaction(async (tx) => {
-      // Create Booking record
-      const newBooking = await tx.booking.create({
-        data: {
-          userId,
-          eventId: hold.eventId,
-          bookingReference: bookingRef,
-          totalAmount: finalTotal,
-          discountAmount: discount,
-          couponCode: dto.couponCode || null,
-          status: BookingStatus.CONFIRMED,
-          idempotencyKey: dto.idempotencyKey || null,
-          seats: {
-            create: eventSeatIds.map((id) => ({
-              eventSeatId: id,
-            })),
+    const booking = await this.prisma.$transaction(
+      async (tx) => {
+        // Create Booking record
+        const newBooking = await tx.booking.create({
+          data: {
+            userId,
+            eventId: hold.eventId,
+            bookingReference: bookingRef,
+            totalAmount: finalTotal,
+            discountAmount: discount,
+            couponCode: dto.couponCode || null,
+            status: BookingStatus.CONFIRMED,
+            idempotencyKey: dto.idempotencyKey || null,
+            seats: {
+              create: eventSeatIds.map((id) => ({
+                eventSeatId: id,
+              })),
+            },
+            ...(dto.addons && dto.addons.length > 0
+              ? {
+                  addons: {
+                    create: dto.addons.map((a) => ({
+                      menuItemId: a.menuItemId,
+                      quantity: a.quantity,
+                      price: a.price,
+                    })),
+                  },
+                }
+              : {}),
           },
-          ...(dto.addons && dto.addons.length > 0
-            ? {
-                addons: {
-                  create: dto.addons.map((a) => ({
-                    menuItemId: a.menuItemId,
-                    quantity: a.quantity,
-                    price: a.price,
-                  })),
-                },
-              }
-            : {}),
-        },
-        include: {
-          event: { include: { venue: true } },
-          seats: {
-            include: {
-              eventSeat: { include: { venueSeat: true } },
+          include: {
+            event: { include: { venue: true } },
+            seats: {
+              include: {
+                eventSeat: { include: { venueSeat: true } },
+              },
+            },
+            addons: {
+              include: {
+                menuItem: { include: { stall: true } },
+              },
             },
           },
-          addons: {
-            include: {
-              menuItem: { include: { stall: true } },
-            },
-          },
-        },
-      });
+        });
 
-      // Mark Hold as COMPLETED
-      await tx.hold.update({
-        where: { id: hold.id },
-        data: { status: HoldStatus.COMPLETED },
-      });
+        // Mark Hold as COMPLETED
+        await tx.hold.update({
+          where: { id: hold.id },
+          data: { status: HoldStatus.COMPLETED },
+        });
 
-      // Update seats to BOOKED
-      await tx.eventSeat.updateMany({
-        where: { id: { in: eventSeatIds } },
-        data: { status: SeatStatus.BOOKED },
-      });
+        // Update seats to BOOKED
+        await tx.eventSeat.updateMany({
+          where: { id: { in: eventSeatIds } },
+          data: { status: SeatStatus.BOOKED },
+        });
 
-      return newBooking;
-    });
+        return newBooking;
+      },
+      {
+        maxWait: 15000, // wait up to 15s to get a connection from the pool
+        timeout: 30000, // allow up to 30s for the transaction to complete
+      },
+    );
+
 
     // 4. Cache idempotency key if provided
     if (dto.idempotencyKey) {

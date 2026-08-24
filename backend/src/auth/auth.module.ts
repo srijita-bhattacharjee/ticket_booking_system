@@ -7,10 +7,12 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 
 import { NotificationsModule } from '../notifications/notifications.module';
+import { RedisModule } from '../common/redis/redis.module';
 
 @Module({
   imports: [
     NotificationsModule,
+    RedisModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

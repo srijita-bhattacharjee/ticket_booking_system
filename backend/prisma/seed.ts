@@ -553,9 +553,79 @@ async function main() {
     await createVirtualSeats(passVenue.id, expoEvent.id, 1000, 'STANDARD', 499, 'Student-Pass');
   }
 
+  // ── Create Food Stalls & Menus ─────────────────────────────────────────────
+  const cinemaStall = await prisma.foodStall.create({
+    data: {
+      venueId: imaxVenue.id,
+      name: 'Cinema Gourmet Hub',
+      description: 'Artisan popcorn, cheese nachos, and chilled craft sodas.',
+      location: 'PVR IMAX — Main Lobby Counter',
+      imageUrl: 'https://images.unsplash.com/photo-1585647347483-22b66260dfff?auto=format&fit=crop&w=800&q=80',
+    },
+  });
+
+  await prisma.menuItem.createMany({
+    data: [
+      {
+        stallId: cinemaStall.id,
+        name: 'Jumbo Butter Popcorn + Soda Combo',
+        description: 'Warm buttered popcorn with a 750ml large fountain soda.',
+        category: 'SNACK',
+        price: 450.0,
+        imageUrl: 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?auto=format&fit=crop&w=500&q=80',
+      },
+      {
+        stallId: cinemaStall.id,
+        name: 'Loaded Cheese Nachos',
+        description: 'Tortilla chips drenched in warm cheese sauce and jalapeños.',
+        category: 'SNACK',
+        price: 320.0,
+        imageUrl: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=500&q=80',
+      },
+    ],
+  });
+
+  const partnership = await prisma.partnershipProof.create({
+    data: {
+      organiserId: organizer.id,
+      foodStallId: cinemaStall.id,
+      partnerName: 'PVR Food Partner Contract',
+      documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      agreementRef: 'AGR-POPCORN-2026-99',
+      status: 'APPROVED',
+    },
+  });
+
+  await prisma.foodCoupon.createMany({
+    data: [
+      {
+        partnershipId: partnership.id,
+        foodStallId: cinemaStall.id,
+        code: 'POPCORN15',
+        title: '15% Off Popcorn Combos',
+        description: 'Get 15% discount on all cinema popcorn bundles.',
+        discountPercent: 15.0,
+        minSpend: 500.0,
+        isActive: true,
+      },
+      {
+        partnershipId: partnership.id,
+        foodStallId: cinemaStall.id,
+        code: 'WELCOME20',
+        title: 'Welcome Discount',
+        description: 'Enjoy 20% off your first food order.',
+        discountPercent: 20.0,
+        minSpend: 300.0,
+        isActive: true,
+      },
+    ],
+  });
+
+  console.log('✅ Food items and partnership coupons created');
   console.log('🎉 Database seeding complete! Successfully created test events for ALL booking models (SEAT, GENERAL_ADMISSION, CAPACITY, SLOT, TABLE, TEAM, PASS).');
 
 }
+
 
 main()
   .catch((e) => {

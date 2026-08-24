@@ -56,52 +56,59 @@ export class HoldsService {
 
     try {
       // Execute PostgreSQL transaction with Row-Level Locking (Pessimistic concurrency control)
-      const hold = await this.prisma.$transaction(async (tx) => {
-        // Raw query using Postgres ANY operator for pessimistic row locking (FOR UPDATE)
-        const targetSeats = await tx.$queryRaw<Array<{ id: string; status: SeatStatus; version: number }>>`
-          SELECT id, status, version FROM event_seats
-          WHERE id = ANY(${dto.seatIds})
-          FOR UPDATE
-        `;
+      const hold = await this.prisma.$transaction(
+        async (tx) => {
+          // Raw query using Postgres ANY operator for pessimistic row locking (FOR UPDATE)
+          const targetSeats = await tx.$queryRaw<Array<{ id: string; status: SeatStatus; version: number }>>`
+            SELECT id, status, version FROM event_seats
+            WHERE id = ANY(${dto.seatIds})
+            FOR UPDATE
+          `;
 
-        if (targetSeats.length !== dto.seatIds.length) {
-          throw new NotFoundException('One or more selected seats were not found for this event');
-        }
+          if (targetSeats.length !== dto.seatIds.length) {
+            throw new NotFoundException('One or more selected seats were not found for this event');
+          }
 
-        // Verify all seats are currently AVAILABLE
-        const unavailable = targetSeats.filter((s) => s.status !== SeatStatus.AVAILABLE);
-        if (unavailable.length > 0) {
-          throw new ConflictException('One or more selected seats are no longer available');
-        }
+          // Verify all seats are currently AVAILABLE
+          const unavailable = targetSeats.filter((s) => s.status !== SeatStatus.AVAILABLE);
+          if (unavailable.length > 0) {
+            throw new ConflictException('One or more selected seats are no longer available');
+          }
 
-        // Create Hold record
-        const newHold = await tx.hold.create({
-          data: {
-            userId,
-            eventId: dto.eventId,
-            expiresAt,
-            status: HoldStatus.ACTIVE,
-            seats: {
-              create: dto.seatIds.map((seatId) => ({
-                eventSeatId: seatId,
-              })),
+          // Create Hold record
+          const newHold = await tx.hold.create({
+            data: {
+              userId,
+              eventId: dto.eventId,
+              expiresAt,
+              status: HoldStatus.ACTIVE,
+              seats: {
+                create: dto.seatIds.map((seatId) => ({
+                  eventSeatId: seatId,
+                })),
+              },
             },
-          },
-          include: {
-            seats: true,
-          },
-        });
+            include: {
+              seats: true,
+            },
+          });
 
-        // Update target seats status to HELD
-        await tx.eventSeat.updateMany({
-          where: { id: { in: dto.seatIds } },
-          data: {
-            status: SeatStatus.HELD,
-          },
-        });
+          // Update target seats status to HELD
+          await tx.eventSeat.updateMany({
+            where: { id: { in: dto.seatIds } },
+            data: {
+              status: SeatStatus.HELD,
+            },
+          });
 
-        return newHold;
-      });
+          return newHold;
+        },
+        {
+          maxWait: 15000,
+          timeout: 30000,
+        },
+      );
+
 
       // Save Redis TTL key for automatic expiration monitor
       const redisHoldKey = `hold:${hold.id}`;
@@ -166,21 +173,28 @@ export class HoldsService {
 
     const seatIds = hold.seats.map((s) => s.eventSeatId);
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.hold.update({
-        where: { id: holdId },
-        data: { status: targetStatus },
-      });
+    await this.prisma.$transaction(
+      async (tx) => {
+        await tx.hold.update({
+          where: { id: holdId },
+          data: { status: targetStatus },
+        });
 
-      // Change HELD seats back to AVAILABLE
-      await tx.eventSeat.updateMany({
-        where: {
-          id: { in: seatIds },
-          status: SeatStatus.HELD,
-        },
-        data: { status: SeatStatus.AVAILABLE },
-      });
-    });
+        // Change HELD seats back to AVAILABLE
+        await tx.eventSeat.updateMany({
+          where: {
+            id: { in: seatIds },
+            status: SeatStatus.HELD,
+          },
+          data: { status: SeatStatus.AVAILABLE },
+        });
+      },
+      {
+        maxWait: 15000,
+        timeout: 30000,
+      },
+    );
+
 
     // Remove Redis key
     await this.redisService.delKey(`hold:${holdId}`);

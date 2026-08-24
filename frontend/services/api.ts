@@ -27,6 +27,8 @@ export const authService = {
   sendSignupOtp: (data: any) => api.post('/api/auth/send-signup-otp', data),
   verifySignupOtp: (data: { email: string; otp: string }) => api.post('/api/auth/verify-signup-otp', data),
   getMe: () => api.get('/api/auth/me'),
+  forgotPassword: (email: string) => api.post('/api/auth/forgot-password', { email }),
+  resetPassword: (data: any) => api.post('/api/auth/reset-password', data),
 };
 
 export const eventService = {
