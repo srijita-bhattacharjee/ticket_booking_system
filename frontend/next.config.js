@@ -31,9 +31,12 @@ const nextConfig = {
   },
 
   // API Proxy: Routes /api/* to backend server
-  // In production, Vercel handles this via env var; locally it hits localhost:4000
   async rewrites() {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    let apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    // Fallback if env var is empty, redacted, or invalid during build phase
+    if (!apiBase.startsWith('http://') && !apiBase.startsWith('https://')) {
+      apiBase = 'http://localhost:4000';
+    }
     return [
       {
         source: '/api/:path*',
