@@ -1,29 +1,39 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
-  private resend: Resend;
+  private transporter: nodemailer.Transporter;
   private fromAddress: string;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('RESEND_API_KEY', '');
-    this.resend = new Resend(apiKey);
-
-    // Resend free tier: must use onboarding@resend.dev unless you've verified a custom domain
+    const host = this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com');
+    const port = this.configService.get<number>('SMTP_PORT', 465);
+    const user = this.configService.get<string>('SMTP_USER', '');
+    const pass = this.configService.get<string>('SMTP_PASS', '');
     this.fromAddress = this.configService.get<string>(
-      'RESEND_FROM',
-      'TicketVerse <onboarding@resend.dev>',
+      'SMTP_FROM',
+      this.configService.get<string>('RESEND_FROM', 'TicketVerse <onboarding@resend.dev>'),
     );
 
-    if (!apiKey) {
+    this.transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465, // true for port 465, false for other ports (like 587)
+      auth: {
+        user,
+        pass,
+      },
+    });
+
+    if (!user || !pass) {
       this.logger.warn(
-        'RESEND_API_KEY is not set. Email sending will fail. Add it to your .env file.',
+        'SMTP credentials (SMTP_USER or SMTP_PASS) are not set. Email sending will fail. Add them to your .env file.',
       );
     } else {
-      this.logger.log(`Resend email service initialized. Sending from: ${this.fromAddress}`);
+      this.logger.log(`SMTP email service initialized. Sending from: ${this.fromAddress}`);
     }
   }
 
@@ -35,11 +45,11 @@ export class NotificationsService {
     eventDate: string,
     seatsList: string[],
     qrDataUrl: string,
-  ) {
+  ): Promise<boolean> {
     try {
-      const { data, error } = await this.resend.emails.send({
+      await this.transporter.sendMail({
         from: this.fromAddress,
-        to: [toEmail],
+        to: toEmail,
         subject: `🎟️ Booking Confirmed: ${eventTitle} [Ref: ${bookingRef}]`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 30px; border-radius: 12px;">
@@ -63,15 +73,10 @@ export class NotificationsService {
         `,
       });
 
-      if (error) {
-        this.logger.error(`Failed to send ticket email to ${toEmail}: ${error.message}`);
-        return false;
-      }
-
-      this.logger.log(`Ticket confirmation email sent to ${toEmail}. MessageId: ${data?.id}`);
+      this.logger.log(`Ticket confirmation email sent to ${toEmail}`);
       return true;
     } catch (err: any) {
-      this.logger.error(`Exception sending ticket email to ${toEmail}: ${err.message}`);
+      this.logger.error(`Failed to send ticket email to ${toEmail}: ${err.message}`);
       return false;
     }
   }
@@ -83,11 +88,11 @@ export class NotificationsService {
     category: string,
     offerLink: string,
     expiresAt: Date,
-  ) {
+  ): Promise<boolean> {
     try {
-      const { data, error } = await this.resend.emails.send({
+      await this.transporter.sendMail({
         from: this.fromAddress,
-        to: [toEmail],
+        to: toEmail,
         subject: `🎉 Waitlist Offer: A seat opened up for ${eventTitle}!`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 30px; border-radius: 12px;">
@@ -109,22 +114,19 @@ export class NotificationsService {
         `,
       });
 
-      if (error) {
-        this.logger.error(`Failed to send waitlist email to ${toEmail}: ${error.message}`);
-        return;
-      }
-
-      this.logger.log(`Waitlist offer email sent to ${toEmail}. MessageId: ${data?.id}`);
+      this.logger.log(`Waitlist offer email sent to ${toEmail}`);
+      return true;
     } catch (err: any) {
-      this.logger.error(`Exception sending waitlist email to ${toEmail}: ${err.message}`);
+      this.logger.error(`Failed to send waitlist email to ${toEmail}: ${err.message}`);
+      return false;
     }
   }
 
-  async sendOtpEmail(toEmail: string, userName: string, otp: string) {
+  async sendOtpEmail(toEmail: string, userName: string, otp: string): Promise<boolean> {
     try {
-      const { data, error } = await this.resend.emails.send({
+      await this.transporter.sendMail({
         from: this.fromAddress,
-        to: [toEmail],
+        to: toEmail,
         subject: `🔐 Your TicketVerse Verification Code: ${otp}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 30px; border-radius: 12px;">
@@ -144,15 +146,10 @@ export class NotificationsService {
         `,
       });
 
-      if (error) {
-        this.logger.error(`Failed to send OTP email to ${toEmail}: ${error.message}`);
-        return false;
-      }
-
-      this.logger.log(`OTP verification email sent to ${toEmail}. MessageId: ${data?.id}`);
+      this.logger.log(`OTP verification email sent to ${toEmail}`);
       return true;
     } catch (err: any) {
-      this.logger.error(`Exception sending OTP email to ${toEmail}: ${err.message}`);
+      this.logger.error(`Failed to send OTP email to ${toEmail}: ${err.message}`);
       return false;
     }
   }
