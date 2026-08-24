@@ -138,6 +138,7 @@ function EventDetailContent() {
       }
 
       if (event?.seats && event.seats.length > 0) {
+        // Seat-map based booking (SEAT model)
         if (selectedSeatIds.length === 0) {
           setError('Please select at least one seat to proceed.');
           setHolding(false);
@@ -146,16 +147,32 @@ function EventDetailContent() {
         const res = await holdService.create(eventId, selectedSeatIds);
         router.push(`/checkout/${res.data.holdId}`);
       } else {
-        // Non-seat resource booking (Zones, Slots, Tables, Team, Pass, Capacity)
-        // If event has seats array available from backend, fallback or simulate hold
-        const availableSeat = event?.seats?.[0];
-        if (availableSeat) {
-          const res = await holdService.create(eventId, [availableSeat.id]);
+        // Non-seat-map events: Zones, Slots, Capacity, Team, Pass, General Admission
+        // Pick the first N available event seats from the event's seat pool
+        const qty = ticketQuantity || 1;
+        const availableSeats = (event?.seats || [])
+          .filter((s: any) => s.status === 'AVAILABLE')
+          .slice(0, qty);
+
+        if (availableSeats.length > 0) {
+          const seatIds = availableSeats.map((s: any) => s.id);
+          const res = await holdService.create(eventId, seatIds);
           router.push(`/checkout/${res.data.holdId}`);
         } else {
-          // Direct checkout simulation or confirmation
-          alert(`Proceeding to reservation checkout for ${event.title}! Total: ₹${totalPrice}`);
-          router.push('/bookings');
+          // Re-fetch event to get freshest seats (event detail page may not have full seat list)
+          try {
+            const freshEvent = await eventService.getById(eventId);
+            const freshSeats = freshEvent.data?.seats || [];
+            const freshAvailable = freshSeats.filter((s: any) => s.status === 'AVAILABLE').slice(0, qty);
+            if (freshAvailable.length > 0) {
+              const res = await holdService.create(eventId, freshAvailable.map((s: any) => s.id));
+              router.push(`/checkout/${res.data.holdId}`);
+            } else {
+              setError('No seats are currently available for this event. You may join the waitlist.');
+            }
+          } catch {
+            setError('Could not load available seats. Please refresh and try again.');
+          }
         }
       }
     } catch (err: any) {
@@ -164,6 +181,7 @@ function EventDetailContent() {
       setHolding(false);
     }
   };
+
 
   if (loading) return <div className="text-center py-20 theme-text-secondary text-xs">Loading event map &amp; resources...</div>;
   if (!event) return <div className="text-center py-20 theme-text-secondary text-xs">Event not found</div>;

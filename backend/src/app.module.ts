@@ -17,6 +17,7 @@ import { FoodModule } from './food/food.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { SeatsGateway } from './seats/seats.gateway';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SeatsGateway } from './seats/seats.gateway';
     ChatbotModule,
     WishlistModule,
   ],
+  controllers: [HealthController],
   providers: [
     SeatsGateway,
     {

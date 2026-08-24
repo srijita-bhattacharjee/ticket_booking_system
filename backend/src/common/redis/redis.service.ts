@@ -10,26 +10,40 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
+    const redisUrl = this.configService.get<string>('REDIS_URL');
     const host = this.configService.get<string>('REDIS_HOST', 'localhost');
     const port = this.configService.get<number>('REDIS_PORT', 6379);
 
-    this.client = new Redis({
-      host,
-      port,
-      maxRetriesPerRequest: null,
-      lazyConnect: true,
-      retryStrategy: () => null, // Don't retry infinitely if Redis is offline
+    // REDIS_URL takes priority (Upstash TLS, Railway, Render managed Redis)
+    // Falls back to host+port for local development
+    this.client = redisUrl
+      ? new Redis(redisUrl, {
+          maxRetriesPerRequest: null,
+          lazyConnect: true,
+          retryStrategy: () => null,
+          tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+        })
+      : new Redis({
+          host,
+          port,
+          maxRetriesPerRequest: null,
+          lazyConnect: true,
+          retryStrategy: () => null,
+        });
+
+    this.client.on('error', (_err) => {
+      // Suppress unhandled crash; PostgreSQL row-locking handles concurrency as fallback
     });
 
-    this.client.on('error', (err) => {
-      // Suppress unhandled EventEmitter crash logs when Redis server is offline
-    });
-
-    this.client.connect().then(() => {
-      this.logger.log(`Connected to Redis at ${host}:${port}`);
-    }).catch(err => {
-      this.logger.warn(`Redis server offline (${err.message}). Database row-locking will handle concurrency.`);
-    });
+    this.client
+      .connect()
+      .then(() => {
+        const target = redisUrl ? redisUrl.replace(/:\/\/.*@/, '://***@') : `${host}:${port}`;
+        this.logger.log(`Connected to Redis at ${target}`);
+      })
+      .catch((err) => {
+        this.logger.warn(`Redis offline (${err.message}). DB row-locking is the fallback concurrency guard.`);
+      });
   }
 
   getClient(): Redis {

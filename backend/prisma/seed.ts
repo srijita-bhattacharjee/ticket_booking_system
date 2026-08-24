@@ -450,7 +450,111 @@ async function main() {
     },
   });
 
+  // ─── Virtual Seats for Non-SEAT Booking Model Events ────────────────────────
+  // These events use Zones / Capacity / Slots / Tables / Teams / Passes.
+  // We create a pool of virtual venue+event seats so the hold & checkout
+  // pipeline (which requires eventSeat IDs) works end-to-end for all event types.
+
+  // Helper: create N virtual venue seats + event seats for a venue/event
+  async function createVirtualSeats(
+    venueId: string,
+    eventId: string,
+    count: number,
+    category: string,
+    price: number,
+    rowLabel: string,
+  ) {
+    const vSeatsData = Array.from({ length: count }, (_, i) => ({
+      venueId,
+      rowNumber: rowLabel,
+      seatNumber: i + 1,
+      category: category as any,
+    }));
+    await prisma.venueSeat.createMany({ data: vSeatsData });
+    const created = await prisma.venueSeat.findMany({
+      where: { venueId, rowNumber: rowLabel },
+    });
+    await prisma.eventSeat.createMany({
+      data: created.map((vs: { id: string }) => ({
+        eventId,
+        venueSeatId: vs.id,
+        category: category as any,
+        price,
+        status: SeatStatus.AVAILABLE,
+      })),
+    });
+  }
+
+  // Event 2: Coldplay Concert (GENERAL_ADMISSION) — VIP + GA zones
+  const coldplayEvent = await prisma.event.findFirst({ where: { title: { contains: 'Coldplay' } } });
+  if (coldplayEvent) {
+    await createVirtualSeats(concertVenue.id, coldplayEvent.id, 300, 'VIP', 9500, 'VIP-Pit');
+    await createVirtualSeats(concertVenue.id, coldplayEvent.id, 2500, 'STANDARD', 3500, 'GA-Floor');
+  }
+
+  // Event 4: Sports (SEAT model but no seats created above) — Stadium seats
+  const sportsEvent = await prisma.event.findFirst({ where: { title: { contains: 'ISL Super Cup' } } });
+  if (sportsEvent) {
+    // Add stadium venue seats
+    const stadiumSeatsData: any[] = [];
+    ['VIP-West', 'West-Stand', 'East-Stand', 'North-Stand'].forEach((row) => {
+      const cat = row.includes('VIP') ? 'VIP' : row.includes('West') ? 'PREMIUM' : 'STANDARD';
+      const price = cat === 'VIP' ? 4500 : cat === 'PREMIUM' ? 2500 : 999;
+      for (let s = 1; s <= 30; s++) {
+        stadiumSeatsData.push({ venueId: stadiumVenue.id, rowNumber: row, seatNumber: s, category: cat });
+      }
+    });
+    await prisma.venueSeat.createMany({ data: stadiumSeatsData });
+    const stadiumVenueSeats = await prisma.venueSeat.findMany({ where: { venueId: stadiumVenue.id } });
+    await prisma.eventSeat.createMany({
+      data: stadiumVenueSeats.map((vs: { id: string; category: string }) => ({
+        eventId: sportsEvent.id,
+        venueSeatId: vs.id,
+        category: vs.category as any,
+        price: vs.category === 'VIP' ? 4500 : vs.category === 'PREMIUM' ? 2500 : 999,
+        status: SeatStatus.AVAILABLE,
+      })),
+    });
+  }
+
+  // Event 5: AI Workshop (CAPACITY) — 50 participant slots
+  const workshopEvent = await prisma.event.findFirst({ where: { title: { contains: 'AI Agentic' } } });
+  if (workshopEvent) {
+    await createVirtualSeats(workshopVenue.id, workshopEvent.id, 50, 'STANDARD', 4999, 'Participant');
+  }
+
+  // Event 6: VR Game Escape Room (SLOT) — 3 slots × 6 players
+  const gameEvent = await prisma.event.findFirst({ where: { title: { contains: 'Cyberpunk VR' } } });
+  if (gameEvent) {
+    await createVirtualSeats(gameVenue.id, gameEvent.id, 6, 'STANDARD', 799, 'Slot-11am');
+    await createVirtualSeats(gameVenue.id, gameEvent.id, 6, 'STANDARD', 799, 'Slot-1pm');
+    await createVirtualSeats(gameVenue.id, gameEvent.id, 6, 'STANDARD', 799, 'Slot-3pm');
+  }
+
+  // Event 7: Comedy & Dinner (TABLE) — 4 tables
+  const comedyEvent = await prisma.event.findFirst({ where: { title: { contains: 'Standup Comedy' } } });
+  if (comedyEvent) {
+    await createVirtualSeats(tableVenue.id, comedyEvent.id, 4, 'VIP', 3200, 'VIP-Table');
+    await createVirtualSeats(tableVenue.id, comedyEvent.id, 2, 'PREMIUM', 1800, 'Couples-Table');
+    await createVirtualSeats(tableVenue.id, comedyEvent.id, 4, 'STANDARD', 2400, 'Standard-Table');
+  }
+
+  // Event 8: Esports (TEAM) — 16 team registration slots
+  const esportsEvent = await prisma.event.findFirst({ where: { title: { contains: 'Valorant' } } });
+  if (esportsEvent) {
+    await createVirtualSeats(teamVenue.id, esportsEvent.id, 16, 'STANDARD', 2500, 'Team-Slot');
+  }
+
+  // Event 9: Tech Expo (PASS) — 3 pass types
+  const expoEvent = await prisma.event.findFirst({ where: { title: { contains: 'Tech Expo' } } });
+  if (expoEvent) {
+    await createVirtualSeats(passVenue.id, expoEvent.id, 200, 'VIP', 4999, 'VIP-Pass');
+    await createVirtualSeats(passVenue.id, expoEvent.id, 500, 'PREMIUM', 1999, 'Delegate-Pass');
+    await createVirtualSeats(passVenue.id, expoEvent.id, 1000, 'STANDARD', 499, 'Student-Pass');
+  }
+
   console.log('🎉 Database seeding complete! Successfully created test events for ALL booking models (SEAT, GENERAL_ADMISSION, CAPACITY, SLOT, TABLE, TEAM, PASS).');
+
 }
 
 main()

@@ -42,10 +42,30 @@ function LoginForm() {
     }
   };
 
-  const fillPreset = (roleEmail: string) => {
+  const fillPreset = async (roleEmail: string) => {
     setEmail(roleEmail);
     setPassword('Password123!');
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const res = await authService.login({ email: roleEmail, password: 'Password123!' });
+      login(res.data.accessToken, res.data.user);
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else if (res.data.user.role === 'ORGANISER') {
+        router.push('/organiser/dashboard');
+      } else if (res.data.user.role === 'ADMIN') {
+        router.push('/admin/venues');
+      } else {
+        router.push('/events');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Demo login failed — make sure the backend is running and the database is seeded.');
+      setSubmitting(false);
+    }
   };
+
 
   return (
     <div className="max-w-md mx-auto py-12 space-y-6">
@@ -57,26 +77,35 @@ function LoginForm() {
       {/* Quick Role Tester Preset Buttons */}
       <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-3">
         <p className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
-          <UserCheck className="w-4 h-4" /> Quick Demo Role Presets:
+          <UserCheck className="w-4 h-4" /> Quick Demo — One-Click Sign In:
         </p>
         <div className="grid grid-cols-3 gap-2">
           <button
+            type="button"
+            disabled={submitting}
             onClick={() => fillPreset('customer@example.com')}
-            className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl text-[11px] font-semibold text-slate-200 text-center border border-slate-700 transition"
+            className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 p-2.5 rounded-xl text-[11px] font-bold text-slate-200 text-center border border-slate-700 transition flex flex-col items-center gap-0.5"
           >
-            Customer
+            <span>👤 Customer</span>
+            <span className="text-[9px] text-slate-500 font-normal">customer@example.com</span>
           </button>
           <button
+            type="button"
+            disabled={submitting}
             onClick={() => fillPreset('organizer@example.com')}
-            className="bg-purple-900/60 hover:bg-purple-900 p-2 rounded-xl text-[11px] font-semibold text-purple-300 text-center border border-purple-700 transition"
+            className="bg-purple-900/60 hover:bg-purple-900 disabled:opacity-50 p-2.5 rounded-xl text-[11px] font-bold text-purple-300 text-center border border-purple-700 transition flex flex-col items-center gap-0.5"
           >
-            Organiser
+            <span>🎪 Organiser</span>
+            <span className="text-[9px] text-purple-500 font-normal">organizer@example.com</span>
           </button>
           <button
+            type="button"
+            disabled={submitting}
             onClick={() => fillPreset('admin@example.com')}
-            className="bg-amber-900/60 hover:bg-amber-900 p-2 rounded-xl text-[11px] font-semibold text-amber-300 text-center border border-amber-700 transition"
+            className="bg-amber-900/60 hover:bg-amber-900 disabled:opacity-50 p-2.5 rounded-xl text-[11px] font-bold text-amber-300 text-center border border-amber-700 transition flex flex-col items-center gap-0.5"
           >
-            Admin
+            <span>🛡️ Admin</span>
+            <span className="text-[9px] text-amber-600 font-normal">admin@example.com</span>
           </button>
         </div>
       </div>
