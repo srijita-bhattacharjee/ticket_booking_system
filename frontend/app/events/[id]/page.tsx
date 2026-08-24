@@ -161,7 +161,7 @@ function EventDetailContent() {
         } else {
           // Re-fetch event to get freshest seats (event detail page may not have full seat list)
           try {
-            const freshEvent = await eventService.getById(eventId);
+            const freshEvent = await eventService.getOne(eventId);
             const freshSeats = freshEvent.data?.seats || [];
             const freshAvailable = freshSeats.filter((s: any) => s.status === 'AVAILABLE').slice(0, qty);
             if (freshAvailable.length > 0) {
