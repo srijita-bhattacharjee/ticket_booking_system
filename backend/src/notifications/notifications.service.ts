@@ -10,7 +10,7 @@ export class NotificationsService {
 
   constructor(private configService: ConfigService) {
     const host = this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com');
-    const port = this.configService.get<number>('SMTP_PORT', 465);
+    const port = parseInt(this.configService.get<string>('SMTP_PORT', '465'), 10);
     const user = this.configService.get<string>('SMTP_USER', '');
     const pass = this.configService.get<string>('SMTP_PASS', '');
     this.fromAddress = this.configService.get<string>(
