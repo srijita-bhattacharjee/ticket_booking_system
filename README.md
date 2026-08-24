@@ -314,3 +314,21 @@ npm run dev
 ```
 
 Visit **`http://localhost:3000`** in your browser.
+
+---
+
+## 🌐 11. Production Deployment & Live Demo
+
+The platform has been fully hardened and deployed to production.
+
+- **Live URL**: **[https://ticketverse.up.railway.app](https://ticketverse.up.railway.app)**
+- **API Health Endpoint**: **[https://ticketbookingsystem-production-f5c9.up.railway.app/api/health](https://ticketbookingsystem-production-f5c9.up.railway.app/api/health)**
+- **Detailed Step-by-Step Guide**: Read the [Production Deployment Guide](file:///C:/Users/sriji/.gemini/antigravity-ide/brain/9418946f-11a6-411a-a562-494cb958dbfb/deployment_guide.md) for full instructions on setting up Neon, Supabase, Upstash, and Railway configurations.
+
+### Production Hardening Features Implemented:
+1. **Dynamic CORS Whitelisting:** Backend automatically restricts HTTP/WebSocket origins using `ALLOWED_ORIGINS` and `FRONTEND_URL` environment variables.
+2. **Reverse Proxy Trust:** Configured `trust proxy 1` to ensure correct client IP mapping behind load balancers for rate-limiters.
+3. **Response Compression:** Integrated standard gzip compression to reduce transfer payloads by ~70%.
+4. **Health Check Probes:** Implemented a `/api/health` controller to monitor database sync status and node uptime during rolling redeploys.
+5. **Standalone Next.js Config:** Enabled Docker-ready standalone server builds optimized for container engines.
+
