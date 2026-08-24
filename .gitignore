@@ -39,6 +39,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Checklists & Guides
+checklist.md
+
 # AI Assistant & IDE metadata
 .gemini/
 scratch/

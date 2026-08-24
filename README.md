@@ -220,7 +220,27 @@ User Message ──► Intent Extraction ──► RAG Static Policy Check ─�
 
 ---
 
-## 📡 8. REST API Endpoints Specification
+## 📧 8. Resend Email Notification Service Engine
+
+The platform integrates **Resend** as its core transactional mail delivery engine to handle critical user communications and time-sensitive flows asynchronously:
+
+1. **Email OTP Verification Workflow (Sign-Up / Login)**:
+   - When a user registers or logs in, the backend generates a secure 6-digit OTP code (`sendOtpEmail`).
+   - The OTP is valid for 10 minutes and is sent via a modern, clean HTML verification email prompting the user to activate their account.
+2. **Ticket Booking Confirmation & Digital QR Passes**:
+   - Upon successful payment verification, the backend issues an HTML booking confirmation email (`sendTicketEmail`).
+   - The email contains the unique booking reference, date & time, seat details, and an **inline digital QR code** (base64 image data URL) representing the cryptographically signed ticket check-in token for venue entry gate scanners.
+3. **Waitlist Reallocation Alert Cascade**:
+   - In the event of a cancellation, the FIFO waitlist cascade triggers a high-priority alert email to the top candidate in the queue (`sendWaitlistOfferEmail`).
+   - The email provides a direct checkout claim link (`FRONTEND_URL/checkout/:holdId`) and explicitly alerts the recipient that they have exactly **15 minutes** to claim their reserved seat before the offer token expires and reallocates to the next candidate.
+
+### Environment Configuration:
+- `RESEND_API_KEY`: API key generated from the Resend dashboard.
+- `RESEND_FROM`: The sender address header. Default falls back to `TicketVerse <onboarding@resend.dev>` for sandbox testing.
+
+---
+
+## 📡 9. REST API Endpoints Specification
 
 ### 🔑 Authentication API (`/api/auth`)
 - `POST /api/auth/register`: Register new user (`CUSTOMER`, `ORGANISER`, `ADMIN`)
@@ -268,7 +288,7 @@ User Message ──► Intent Extraction ──► RAG Static Policy Check ─�
 
 ---
 
-## 🔑 9. Demo Login Credentials
+## 🔑 10. Demo Login Credentials
 
 For evaluators testing the application:
 
@@ -280,7 +300,7 @@ For evaluators testing the application:
 
 ---
 
-## 🚀 10. Quick Start & Setup Guide
+## 🚀 11. Quick Start & Setup Guide
 
 ### 1. Prerequisites
 - Node.js v18+
@@ -317,7 +337,7 @@ Visit **`http://localhost:3000`** in your browser.
 
 ---
 
-## 🌐 11. Production Deployment & Live Demo
+## 🌐 12. Production Deployment & Live Demo
 
 The platform has been fully hardened and deployed to production.
 
